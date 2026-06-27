@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo, IBM_Plex_Sans_Arabic } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const display = Cairo({
@@ -33,7 +34,15 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ar" dir="rtl" className={`${display.variable} ${body.variable}`}>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        <Toaster
+          position="top-center"
+          dir="rtl"
+          richColors
+          toastOptions={{ className: "font-sans" }}
+        />
+      </body>
     </html>
   );
 }
