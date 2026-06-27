@@ -11,3 +11,8 @@ npm-debug.log*
 next-env.d.ts
 .vercel
 *.tsbuildinfo
+
+# Test artifacts
+/test-results/
+/playwright-report/
+/coverage/
