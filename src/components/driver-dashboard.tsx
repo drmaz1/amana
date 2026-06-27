@@ -1,18 +1,22 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import {
   CalendarDays,
   Car,
   CheckCircle2,
   Clock,
+  Loader2,
   Package,
   Plus,
   Users,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import type { Booking, Trip, VehicleType } from "@/types";
+import { createTrip } from "@/lib/actions/trip";
 import { GOVERNORATES } from "@/lib/governorates";
 import {
   formatArabicDate,
@@ -74,9 +78,12 @@ export function DriverDashboard({
   initialTrips: Trip[];
   bookings: Booking[];
 }) {
-  const [trips, setTrips] = React.useState<Trip[]>(initialTrips);
+  const router = useRouter();
   const [showForm, setShowForm] = React.useState(false);
   const [justAdded, setJustAdded] = React.useState(false);
+
+  // Server data is the source of truth; a created trip arrives via router.refresh().
+  const trips = initialTrips;
 
   const tripById = React.useMemo(() => {
     const m = new Map<string, Trip>();
@@ -86,10 +93,10 @@ export function DriverDashboard({
 
   const seatsBooked = trips.reduce((sum, t) => sum + t.bookedSeats.length, 0);
 
-  function handleAdd(trip: Trip) {
-    setTrips((prev) => [trip, ...prev]);
+  function handleAdded() {
     setShowForm(false);
     setJustAdded(true);
+    router.refresh();
     setTimeout(() => setJustAdded(false), 3500);
   }
 
@@ -137,7 +144,10 @@ export function DriverDashboard({
         {/* trips tab */}
         <TabsContent value="trips">
           {showForm ? (
-            <AddTripForm onAdd={handleAdd} onCancel={() => setShowForm(false)} />
+            <AddTripForm
+              onAdded={handleAdded}
+              onCancel={() => setShowForm(false)}
+            />
           ) : (
             <Button
               variant="accent"
@@ -228,12 +238,12 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
-/** Local-only add-trip form (MVP — no backend write). */
+/** Add-trip form — persists via the createTrip server action. */
 function AddTripForm({
-  onAdd,
+  onAdded,
   onCancel,
 }: {
-  onAdd: (trip: Trip) => void;
+  onAdded: () => void;
   onCancel: () => void;
 }) {
   const [from, setFrom] = React.useState("baghdad");
@@ -246,6 +256,7 @@ function AddTripForm({
   const [seats, setSeats] = React.useState("4");
   const [price, setPrice] = React.useState("25000");
   const [parcels, setParcels] = React.useState(true);
+  const [submitting, setSubmitting] = React.useState(false);
 
   const valid =
     from !== to &&
@@ -255,27 +266,29 @@ function AddTripForm({
     Number(seats) >= 1 &&
     Number(price) > 0;
 
-  function submit() {
-    if (!valid) return;
+  async function submit() {
+    if (!valid || submitting) return;
+    setSubmitting(true);
     const departureAt = new Date(`${date}T${time}:00`).toISOString();
-    const trip: Trip = {
-      id: "t" + Math.random().toString(36).slice(2, 8),
-      driver: DEMO_DRIVER,
-      vehicleType,
-      vehicleModel: model.trim(),
-      plate: "—",
+    const res = await createTrip({
       originId: from,
       destinationId: to,
       departureAt,
       durationMinutes: Math.max(30, Math.round(Number(hours) * 60)) || 180,
-      pricePerSeat: Math.round(Number(price)),
+      vehicleType,
+      vehicleModel: model.trim(),
       totalSeats: Math.max(1, Math.round(Number(seats))),
-      bookedSeats: [],
-      status: "SCHEDULED",
+      pricePerSeat: Math.round(Number(price)),
       acceptsParcels: parcels,
       parcelBasePrice: parcels ? 8000 : undefined,
-    };
-    onAdd(trip);
+    });
+    if (res.ok) {
+      toast.success("تمت إضافة الرحلة");
+      onAdded();
+      return;
+    }
+    setSubmitting(false);
+    toast.error(res.error);
   }
 
   return (
@@ -439,11 +452,24 @@ function AddTripForm({
         )}
 
         <div className="flex gap-2">
-          <Button className="flex-1" onClick={submit} disabled={!valid}>
-            <Plus className="h-4 w-4" />
-            إضافة الرحلة
+          <Button
+            className="flex-1"
+            onClick={submit}
+            disabled={!valid || submitting}
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                جارٍ الإضافة…
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4" />
+                إضافة الرحلة
+              </>
+            )}
           </Button>
-          <Button variant="outline" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel} disabled={submitting}>
             إلغاء
           </Button>
         </div>
@@ -451,12 +477,3 @@ function AddTripForm({
     </Card>
   );
 }
-
-// Demo driver used for trips created from this dashboard.
-const DEMO_DRIVER = {
-  id: "d1",
-  name: "أبو علي الكناني",
-  phone: "07701234567",
-  rating: 4.8,
-  tripsCount: 312,
-};
