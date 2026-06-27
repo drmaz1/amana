@@ -11,7 +11,11 @@ import {
   Search,
 } from "lucide-react";
 
+import { toast } from "sonner";
+
+import { createParcel } from "@/lib/actions/parcel";
 import { GOVERNORATES, governorateName } from "@/lib/governorates";
+import { isValidIraqiPhone } from "@/lib/phone";
 import { estimateParcelPrice } from "@/lib/pricing";
 import { formatIQD } from "@/lib/utils";
 import { RouteLine } from "@/components/route-line";
@@ -29,10 +33,6 @@ import {
 } from "@/components/ui/select";
 
 const arNum = (n: number) => new Intl.NumberFormat("ar-IQ").format(n);
-
-function makeRef() {
-  return "PKG-" + Math.floor(1000 + Math.random() * 9000);
-}
 
 export function ParcelForm({
   defaultFrom = "baghdad",
@@ -60,7 +60,7 @@ export function ParcelForm({
     !sameCity &&
     sender.trim().length >= 2 &&
     receiver.trim().length >= 2 &&
-    phone.trim().length >= 7 &&
+    isValidIraqiPhone(phone) &&
     description.trim().length >= 2;
 
   function swap() {
@@ -68,13 +68,26 @@ export function ParcelForm({
     setTo(from);
   }
 
-  function submit() {
-    if (!valid) return;
+  async function submit() {
+    if (!valid || status === "loading") return;
     setStatus("loading");
-    setTimeout(() => {
-      setReference(makeRef());
+    const res = await createParcel({
+      originId: from,
+      destinationId: to,
+      senderName: sender.trim(),
+      receiverName: receiver.trim(),
+      receiverPhone: phone.trim(),
+      description: description.trim(),
+      weightKg: Number(weight),
+    });
+    if (res.ok) {
+      setReference(res.reference);
       setStatus("done");
-    }, 900);
+      toast.success("تم استلام طلب الأمانة");
+      return;
+    }
+    setStatus("idle");
+    toast.error(res.error);
   }
 
   if (status === "done") {
