@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { getTrip } from "@/lib/data";
+import { governorateName } from "@/lib/governorates";
 import {
   formatArabicDate,
   formatDuration,
@@ -26,6 +28,19 @@ import { Separator } from "@/components/ui/separator";
 
 const VEHICLE_LABEL = { SEDAN: "صالون", VAN: "كيا / فان", BUS: "باص" } as const;
 const arNum = (n: number) => new Intl.NumberFormat("ar-IQ").format(n);
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const trip = await getTrip(params.id);
+  if (!trip) return { title: "رحلة غير موجودة" };
+  return {
+    title: `${governorateName(trip.originId)} ← ${governorateName(trip.destinationId)}`,
+    description: `رحلة مع ${trip.driver.name} — احجز مقعدك على أمانة.`,
+  };
+}
 
 export default async function TripDetailsPage({
   params,

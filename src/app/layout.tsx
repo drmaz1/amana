@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo, IBM_Plex_Sans_Arabic } from "next/font/google";
 import { Toaster } from "sonner";
+
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const display = Cairo({
@@ -18,9 +20,15 @@ const body = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "أمانة — حجز مقاعد ونقل بريد بين المحافظات",
+  metadataBase: new URL(siteUrl()),
+  title: {
+    default: "أمانة — حجز مقاعد ونقل بريد بين المحافظات",
+    template: "%s — أمانة",
+  },
   description:
     "منصة عراقية لحجز مقاعد السفر بين المحافظات وإرسال الأمانات والبريد مع سائقين موثوقين.",
+  applicationName: "أمانة",
+  appleWebApp: { capable: true, title: "أمانة", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {

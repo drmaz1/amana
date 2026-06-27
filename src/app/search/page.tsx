@@ -10,6 +10,8 @@ import { TripCard } from "@/components/trip-card";
 import { RouteLine } from "@/components/route-line";
 import { Button } from "@/components/ui/button";
 
+export const metadata = { title: "البحث عن رحلة" };
+
 const arNum = (n: number) => new Intl.NumberFormat("ar-IQ").format(n);
 
 export default async function SearchPage({

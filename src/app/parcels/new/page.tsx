@@ -2,6 +2,8 @@ import { governorate } from "@/lib/governorates";
 import { AppShell } from "@/components/app-shell";
 import { ParcelForm } from "@/components/parcel-form";
 
+export const metadata = { title: "إرسال أمانة" };
+
 /** Use the query param only if it maps to a real governorate. */
 function clean(id: string | undefined, fallback: string): string {
   if (!id) return fallback;

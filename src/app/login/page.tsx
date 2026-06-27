@@ -5,6 +5,8 @@ import { AppShell } from "@/components/app-shell";
 import { AmanaMark } from "@/components/amana-logo";
 import { LoginForm } from "@/components/login-form";
 
+export const metadata = { title: "تسجيل الدخول" };
+
 export default async function LoginPage({
   searchParams,
 }: {
