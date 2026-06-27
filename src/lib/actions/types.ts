@@ -5,7 +5,7 @@
  */
 export type ActionOk<T> = { ok: true } & T;
 export type ActionError = { ok: false; error: string; code?: string };
-export type ActionResult<T = Record<string, never>> = ActionOk<T> | ActionError;
+export type ActionResult<T = Record<never, never>> = ActionOk<T> | ActionError;
 
 export function actionError(error: string, code?: string): ActionError {
   return { ok: false, error, code };

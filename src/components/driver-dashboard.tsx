@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 
 import type { Booking, Trip, VehicleType } from "@/types";
-import { createTrip } from "@/lib/actions/trip";
+import { cancelTrip, createTrip, setTripStatus } from "@/lib/actions/trip";
 import { GOVERNORATES } from "@/lib/governorates";
 import {
   formatArabicDate,
@@ -25,7 +25,7 @@ import {
 } from "@/lib/utils";
 import { RouteLine } from "@/components/route-line";
 import { TripCard } from "@/components/trip-card";
-import { BookingStatusBadge } from "@/components/status-badge";
+import { BookingStatusBadge, TripStatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -161,7 +161,10 @@ export function DriverDashboard({
 
           <div className="grid gap-3">
             {trips.map((t) => (
-              <TripCard key={t.id} trip={t} />
+              <div key={t.id} className="grid gap-2">
+                <TripCard trip={t} />
+                <DriverTripControls trip={t} />
+              </div>
             ))}
             {trips.length === 0 && (
               <EmptyState text="لا توجد رحلات بعد. أضف رحلتك الأولى." />
@@ -227,6 +230,73 @@ export function DriverDashboard({
         </TabsContent>
       </Tabs>
     </>
+  );
+}
+
+/** Per-trip status controls shown under each card on the driver's dashboard. */
+function DriverTripControls({ trip }: { trip: Trip }) {
+  const router = useRouter();
+  const [busy, setBusy] = React.useState(false);
+
+  async function apply(
+    status: "ONGOING" | "COMPLETED" | "CANCELLED",
+    successText: string,
+  ) {
+    if (busy) return;
+    if (status === "CANCELLED" && !window.confirm("هل تريد إلغاء هذه الرحلة؟")) {
+      return;
+    }
+    setBusy(true);
+    const res =
+      status === "CANCELLED"
+        ? await cancelTrip(trip.id)
+        : await setTripStatus(trip.id, status);
+    setBusy(false);
+    if (res.ok) {
+      toast.success(successText);
+      router.refresh();
+    } else {
+      toast.error(res.error);
+    }
+  }
+
+  return (
+    <div className="-mt-1 flex flex-wrap items-center gap-2 px-1 pb-1">
+      <TripStatusBadge status={trip.status} />
+      {trip.status === "SCHEDULED" && (
+        <>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={busy}
+            onClick={() => apply("ONGOING", "بدأت الرحلة")}
+          >
+            بدء الرحلة
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            disabled={busy}
+            onClick={() => apply("CANCELLED", "أُلغيت الرحلة")}
+          >
+            <X className="h-4 w-4" />
+            إلغاء
+          </Button>
+        </>
+      )}
+      {trip.status === "ONGOING" && (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={busy}
+          onClick={() => apply("COMPLETED", "اكتملت الرحلة")}
+        >
+          <CheckCircle2 className="h-4 w-4" />
+          إنهاء الرحلة
+        </Button>
+      )}
+    </div>
   );
 }
 
