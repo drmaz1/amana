@@ -81,7 +81,7 @@ In `prisma/schema.prisma`:
 ### P0 — Foundation: make it real & runnable
 - [x] Add deps: `zod`, `jose`, `sonner`. Dev: `vitest`, `@testing-library/react`, `@playwright/test`. Add npm scripts: `typecheck` (`tsc --noEmit`), `test` (`vitest run`), `test:e2e` (`playwright test`).
 - [x] Apply the schema changes in §4 and create the initial migration. Seed the DB and confirm `npm run db:studio` shows data.
-- [ ] Implement real Prisma queries in `src/lib/data.ts` for **all** existing functions, preserving return shapes. Derive seat availability from `BookingSeat`. Verify every page renders identically against the DB.
+- [x] Implement real Prisma queries in `src/lib/data.ts` for **all** existing functions, preserving return shapes. Derive seat availability from `BookingSeat`. Verify every page renders identically against the DB.
 - [ ] Add `loading.tsx`, `error.tsx`, and `not-found.tsx` (route‑group level + a global `app/not-found.tsx`) with on‑brand, RTL skeletons/messages.
 - [ ] Mount `<Toaster />` (sonner) in `layout.tsx`.
 - [ ] Add `src/lib/phone.ts` (normalize/validate Iraqi numbers) with unit tests.
