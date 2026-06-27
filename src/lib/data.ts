@@ -94,7 +94,8 @@ type ParcelRow = {
   id: string;
   originId: string;
   destinationId: string;
-  sender: { name: string };
+  sender: { name: string } | null;
+  senderName: string | null;
   receiverName: string;
   receiverPhone: string;
   description: string;
@@ -108,7 +109,7 @@ function toParcel(p: ParcelRow): Parcel {
     id: p.id,
     originId: p.originId,
     destinationId: p.destinationId,
-    senderName: p.sender.name,
+    senderName: p.sender?.name ?? p.senderName ?? "",
     receiverName: p.receiverName,
     receiverPhone: p.receiverPhone,
     description: p.description,

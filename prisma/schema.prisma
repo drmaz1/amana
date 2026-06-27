@@ -108,6 +108,7 @@ model Trip {
 
 model Booking {
   id          String        @id @default(cuid())
+  reference   String        @unique // human-friendly ref shown to the passenger
   trip        Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId      String
   passenger   User          @relation("PassengerBookings", fields: [passengerId], references: [id])
@@ -156,10 +157,14 @@ model OtpCode {
 
 model Parcel {
   id            String       @id @default(cuid())
+  reference     String       @unique // human-friendly ref shown to the sender
   trip          Trip?        @relation(fields: [tripId], references: [id])
   tripId        String?
-  sender        User         @relation("ParcelSender", fields: [senderId], references: [id])
-  senderId      String
+  // Sender links to a User when authenticated; otherwise `senderName` holds the
+  // guest's free-text name (the parcel form collects no sender phone).
+  sender        User?        @relation("ParcelSender", fields: [senderId], references: [id])
+  senderId      String?
+  senderName    String?
   originId      String
   destinationId String
   receiverName  String

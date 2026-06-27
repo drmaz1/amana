@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
+import { generateReference } from "../src/lib/reference";
+
 const prisma = new PrismaClient();
 
 /** Build a Date `dayOffset` days from now at HH:MM local time. */
@@ -244,6 +246,7 @@ async function main() {
   // display copy.
   await prisma.booking.create({
     data: {
+      reference: generateReference("AMN"),
       tripId: t1.id,
       passengerId: mustafa.id,
       seatNumbers: [1],
@@ -254,6 +257,7 @@ async function main() {
   });
   await prisma.booking.create({
     data: {
+      reference: generateReference("AMN"),
       tripId: t1.id,
       passengerId: zainab.id,
       seatNumbers: [3],
@@ -264,6 +268,7 @@ async function main() {
   });
   await prisma.booking.create({
     data: {
+      reference: generateReference("AMN"),
       tripId: t4.id,
       passengerId: aram.id,
       seatNumbers: [1, 2],
@@ -279,6 +284,7 @@ async function main() {
   });
   await prisma.booking.create({
     data: {
+      reference: generateReference("AMN"),
       tripId: t5.id,
       passengerId: ali.id,
       seatNumbers: [4],
@@ -291,6 +297,7 @@ async function main() {
   // ---------- Parcels ----------
   await prisma.parcel.create({
     data: {
+      reference: generateReference("PKG"),
       tripId: t1.id,
       senderId: hussein.id,
       originId: "baghdad",
@@ -306,6 +313,7 @@ async function main() {
 
   await prisma.parcel.create({
     data: {
+      reference: generateReference("PKG"),
       senderId: noor.id,
       originId: "baghdad",
       destinationId: "erbil",
@@ -320,6 +328,7 @@ async function main() {
 
   await prisma.parcel.create({
     data: {
+      reference: generateReference("PKG"),
       senderId: karrar.id,
       originId: "najaf",
       destinationId: "baghdad",
