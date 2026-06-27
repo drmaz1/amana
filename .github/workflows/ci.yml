@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: amana
+          POSTGRES_PASSWORD: amana
+          POSTGRES_DB: amana
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://amana:amana@localhost:5432/amana?schema=public
+      DIRECT_URL: postgresql://amana:amana@localhost:5432/amana?schema=public
+      AUTH_SECRET: ci-only-secret-not-used-in-production-0123456789abcdef
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Installs deps and runs `prisma generate` via the postinstall hook.
+      - run: npm ci
+
+      # Apply committed migrations to the service database (needed by the
+      # booking integration test).
+      - run: npx prisma migrate deploy
+
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
