@@ -115,15 +115,15 @@ In `prisma/schema.prisma`:
 
 ### P5 — Hardening & quality
 - [ ] Accessibility & RTL audit (focus states, labels, contrast, keyboard nav on the seat map).
-- [ ] Per‑page metadata (`generateMetadata`), `app/sitemap.ts`, `app/robots.ts`, and the PWA manifest + icons.
+- [x] Per‑page metadata (`generateMetadata`), `app/sitemap.ts`, `app/robots.ts`, and the PWA manifest + icons.
 - [ ] Rate‑limit OTP and booking endpoints; sanitize all inputs; ensure phone normalization everywhere.
-- [ ] Playwright e2e for the booking happy path; keep Vitest suite green.
+- [x] Playwright e2e for the booking happy path; keep Vitest suite green.
 - [ ] Centralized error handling/logging in actions (typed `Result`/error objects, no leaking stack traces to users).
 
 ### P6 — Deploy & operate
-- [ ] `.env.example` updated: `DATABASE_URL` (pooled), `DIRECT_URL`, `AUTH_SECRET`, SMS provider vars.
-- [ ] GitHub Actions CI (generate → lint → typecheck → test → build). `prisma migrate deploy` documented for production.
-- [ ] `README.md` refreshed: real setup, auth dev flow (where the OTP prints), migrations, deploy to Vercel + Neon.
+- [x] `.env.example` updated: `DATABASE_URL` (pooled), `DIRECT_URL`, `AUTH_SECRET`, SMS provider vars.
+- [x] GitHub Actions CI (generate → lint → typecheck → test → build). `prisma migrate deploy` documented for production.
+- [x] `README.md` refreshed: real setup, auth dev flow (where the OTP prints), migrations, deploy to Vercel + Neon.
 - [ ] Optional: `PriceRule` table for per‑route parcel pricing + an admin editor.
 
 ---
