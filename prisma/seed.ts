@@ -16,6 +16,7 @@ async function main() {
   console.log("🌱 Seeding Amana database…");
 
   // Clean slate (respect FK order: seats/parcels/bookings → trips → vehicles → users).
+  await prisma.otpCode.deleteMany();
   await prisma.bookingSeat.deleteMany();
   await prisma.parcel.deleteMany();
   await prisma.booking.deleteMany();
@@ -25,14 +26,14 @@ async function main() {
 
   // ---------- Admin ----------
   await prisma.user.create({
-    data: { name: "مدير المنصة", phone: "07900000000", role: "ADMIN" },
+    data: { name: "مدير المنصة", phone: "+9647900000000", role: "ADMIN" },
   });
 
   // ---------- Drivers (+ one vehicle each) ----------
   const d1 = await prisma.user.create({
     data: {
       name: "أبو علي الكناني",
-      phone: "07701234567",
+      phone: "+9647701234567",
       role: "DRIVER",
       rating: 4.8,
       tripsCount: 312,
@@ -51,7 +52,7 @@ async function main() {
   const d2 = await prisma.user.create({
     data: {
       name: "حيدر الموسوي",
-      phone: "07712345678",
+      phone: "+9647712345678",
       role: "DRIVER",
       rating: 4.6,
       tripsCount: 178,
@@ -70,7 +71,7 @@ async function main() {
   const d3 = await prisma.user.create({
     data: {
       name: "سيف الدليمي",
-      phone: "07723456789",
+      phone: "+9647723456789",
       role: "DRIVER",
       rating: 4.9,
       tripsCount: 421,
@@ -89,7 +90,7 @@ async function main() {
   const d4 = await prisma.user.create({
     data: {
       name: "كاروان أحمد",
-      phone: "07734567890",
+      phone: "+9647734567890",
       role: "DRIVER",
       rating: 4.7,
       tripsCount: 256,
@@ -112,25 +113,25 @@ async function main() {
 
   // ---------- Passengers ----------
   const mustafa = await prisma.user.create({
-    data: { name: "مصطفى عبد الله", phone: "07810000001" },
+    data: { name: "مصطفى عبد الله", phone: "+9647810000001" },
   });
   const zainab = await prisma.user.create({
-    data: { name: "زينب حسن", phone: "07810000002" },
+    data: { name: "زينب حسن", phone: "+9647810000002" },
   });
   const aram = await prisma.user.create({
-    data: { name: "آرام رشيد", phone: "07810000003" },
+    data: { name: "آرام رشيد", phone: "+9647810000003" },
   });
   const ali = await prisma.user.create({
-    data: { name: "علي كريم", phone: "07810000004" },
+    data: { name: "علي كريم", phone: "+9647810000004" },
   });
   const hussein = await prisma.user.create({
-    data: { name: "حسين الطائي", phone: "07820000001" },
+    data: { name: "حسين الطائي", phone: "+9647820000001" },
   });
   const noor = await prisma.user.create({
-    data: { name: "نور محمد", phone: "07820000002" },
+    data: { name: "نور محمد", phone: "+9647820000002" },
   });
   const karrar = await prisma.user.create({
-    data: { name: "كرار جبار", phone: "07820000003" },
+    data: { name: "كرار جبار", phone: "+9647820000003" },
   });
 
   // ---------- Trips ----------
@@ -303,7 +304,7 @@ async function main() {
       originId: "baghdad",
       destinationId: "basra",
       receiverName: "ليث الطائي",
-      receiverPhone: "07801112233",
+      receiverPhone: "+9647801112233",
       description: "وثائق وأوراق رسمية",
       weightKg: 0.5,
       price: 10000,
@@ -318,7 +319,7 @@ async function main() {
       originId: "baghdad",
       destinationId: "erbil",
       receiverName: "دلير عمر",
-      receiverPhone: "07502223344",
+      receiverPhone: "+9647502223344",
       description: "قطع غيار لابتوب",
       weightKg: 2,
       price: 12000,
@@ -333,7 +334,7 @@ async function main() {
       originId: "najaf",
       destinationId: "baghdad",
       receiverName: "أحمد سالم",
-      receiverPhone: "07703334455",
+      receiverPhone: "+9647703334455",
       description: "هدية / علبة صغيرة",
       weightKg: 1,
       price: 7000,

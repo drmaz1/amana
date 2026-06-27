@@ -1,14 +1,25 @@
-import Link from "next/link";
-import { Car, LayoutDashboard, Phone, ShieldCheck } from "lucide-react";
+import { redirect } from "next/navigation";
 
+import { getSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { AmanaMark } from "@/components/amana-logo";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { LoginForm } from "@/components/login-form";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: { next?: string };
+}) {
+  // Only honor internal (same-site) redirect targets.
+  const next =
+    searchParams.next && searchParams.next.startsWith("/")
+      ? searchParams.next
+      : undefined;
+
+  // Already signed in → go straight where they were headed.
+  const session = await getSession();
+  if (session) redirect(next || "/");
+
   return (
     <AppShell>
       <div className="mx-auto max-w-sm">
@@ -22,58 +33,11 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Card className="mt-6">
-          <CardContent className="grid gap-4 p-5">
-            <div className="grid gap-1.5">
-              <Label htmlFor="phone">رقم الهاتف</Label>
-              <div className="relative">
-                <Phone className="pointer-events-none absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="phone"
-                  type="tel"
-                  inputMode="tel"
-                  placeholder="07XXXXXXXXX"
-                  className="ps-3 pe-10 nums"
-                  disabled
-                />
-              </div>
-            </div>
-            <Button size="lg" className="w-full" disabled>
-              إرسال رمز التحقق
-            </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              تسجيل الدخول عبر OTP مُخطّط له في المرحلة القادمة من المشروع.
-            </p>
-          </CardContent>
-        </Card>
+        <LoginForm next={next} />
 
-        {/* demo quick-access */}
-        <div className="mt-6">
-          <div className="mb-2 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            دخول تجريبي للعرض
-            <span className="h-px flex-1 bg-border" />
-          </div>
-          <div className="grid gap-2">
-            <Button asChild variant="secondary" className="justify-start">
-              <Link href="/driver">
-                <Car className="h-4 w-4" />
-                لوحة السائق
-              </Link>
-            </Button>
-            <Button asChild variant="secondary" className="justify-start">
-              <Link href="/admin">
-                <LayoutDashboard className="h-4 w-4" />
-                لوحة الإدارة
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        <div className="mt-6 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-          <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-          بياناتك محفوظة بأمان — أمانة.
-        </div>
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          أثناء التطوير، يظهر رمز التحقق في سجل الخادم (console) وفي الحقل أعلاه.
+        </p>
       </div>
     </AppShell>
   );

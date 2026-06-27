@@ -7,9 +7,9 @@ import { generateReference } from "@/lib/reference";
 import { tripSchema, type TripInput } from "@/lib/validation";
 import { actionError, type ActionResult } from "./types";
 
-// Demo driver used until auth threads the real session driver (P2). Mirrors the
-// resolver in src/lib/data.ts.
-const DEMO_DRIVER_PHONE = "07701234567";
+// Demo driver (E.164) used until auth threads the real session driver (P2).
+// Mirrors the resolver in src/lib/data.ts.
+const DEMO_DRIVER_PHONE = "+9647701234567";
 
 /**
  * Create a trip for the (demo) driver. Reuses one of the driver's vehicles when

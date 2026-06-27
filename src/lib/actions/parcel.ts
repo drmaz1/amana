@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { estimateParcelPrice } from "@/lib/pricing";
 import { generateReference } from "@/lib/reference";
+import { getSession } from "@/lib/session";
 import { parcelSchema, type ParcelInput } from "@/lib/validation";
 import { actionError, type ActionResult } from "./types";
 
@@ -35,6 +36,9 @@ export async function createParcel(
   } = parsed.data;
   const price = estimateParcelPrice(weightKg ?? 1);
 
+  // Link to the sender's account when signed in; otherwise keep the guest name.
+  const session = await getSession();
+
   for (let attempt = 0; attempt < 4; attempt++) {
     try {
       const parcel = await prisma.parcel.create({
@@ -42,7 +46,8 @@ export async function createParcel(
           reference: generateReference("PKG"),
           originId,
           destinationId,
-          senderName, // guest sender; senderId set from the session in P2
+          senderId: session?.userId ?? null,
+          senderName,
           receiverName,
           receiverPhone,
           description,

@@ -2,6 +2,44 @@
 
 Non-obvious choices made while completing Amana per `CLAUDE.md`. Newest first.
 
+## P2 — Auth
+
+- **Phones are stored in E.164 everywhere.** Per the brief ("store E.164,
+  display local"), the seed, OTP auth, booking, and parcel all persist
+  `+9647XXXXXXXXX`. The seed originally stored local `07…`, which meant logging
+  in as a seeded driver/admin never matched them (auth normalizes to E.164
+  before the upsert) and silently created a new PASSENGER. Fixed by storing
+  E.164 in the seed and setting the demo-driver constants to E.164. Stored
+  numbers are only used in `tel:` links today, where E.164 is preferred; user
+  input is still typed/shown locally and normalized on the way in.
+
+- **Session = signed JWT in an httpOnly cookie (`jose`).** Payload carries
+  `{ sub: userId, role, name }`. The pure sign/verify lives in
+  `src/lib/session-token.ts` (no `next/headers`) so the edge `middleware.ts`
+  can verify it; `src/lib/session.ts` adds the Node cookie helpers
+  (`getSession`/`requireUser`/`requireRole`). Role changes (e.g. admin
+  promotion) take effect on next login since the role is embedded in the token.
+  `secure` is on only in production — over local HTTP the cookie is non-secure
+  so dev works.
+
+- **OTP dev flow.** Codes are 6 digits, hashed (`sha256(code:phone:secret)`),
+  expire after 5 min, cap at 5 attempts, and are rate-limited per phone
+  (30s cooldown, 5 per 15 min). The `ConsoleSmsProvider` prints the code to the
+  server log; in non-production `requestOtp` also returns it so the login form
+  shows it. Log in as a seeded driver (`07701234567`) or admin (`07900000000`)
+  to reach those dashboards.
+
+- **Guest vs. account identity.** Logged-in users own their bookings/parcels
+  (`passengerId`/`senderId` from the session); guests get a passenger account
+  upserted by phone (booking) or a stored `senderName` (parcel, which collects
+  no sender phone).
+
+## P1 — Writes
+
+- **Booking/parcel references** are short unambiguous codes (`AMN-`/`PKG-`,
+  base32 without 0/O/1/I) stored uniquely for display and future tracking.
+  `Parcel.senderId` was made optional with a `senderName` guest fallback.
+
 ## P0.2 — Schema & seed
 
 - **Display fields added beyond §4.** To keep the data-layer return shapes exact

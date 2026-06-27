@@ -95,12 +95,12 @@ In `prisma/schema.prisma`:
 - [x] Unit‑test the booking transaction (including the concurrent double‑book case → exactly one succeeds).
 
 ### P2 — Authentication & roles
-- [ ] `SmsProvider` interface + `ConsoleSmsProvider` + `HttpSmsProvider` stub (`src/lib/sms/`).
-- [ ] `requestOtp` / `verifyOtp` actions: rate‑limit requests per phone, hash codes, expire after 5 min, cap attempts. On verify, upsert the `User` by phone and mint the JWT cookie session (`jose`), httpOnly + secure + SameSite=Lax.
-- [ ] Session utilities (`src/lib/session.ts`): `getSession()`, `requireUser()`, `requireRole(role)`.
-- [ ] Build the real `/login` flow (request code → enter code) replacing the stub; honor `?next=`.
-- [ ] `middleware.ts`: gate `/driver` and `/admin` by role; redirect unauthenticated users to `/login`.
-- [ ] Thread the session user into `createBooking`/`createParcel` (use `passengerId`/`senderId` from the session instead of free‑text identity where logged in; keep guest fields as fallback).
+- [x] `SmsProvider` interface + `ConsoleSmsProvider` + `HttpSmsProvider` stub (`src/lib/sms/`).
+- [x] `requestOtp` / `verifyOtp` actions: rate‑limit requests per phone, hash codes, expire after 5 min, cap attempts. On verify, upsert the `User` by phone and mint the JWT cookie session (`jose`), httpOnly + secure + SameSite=Lax.
+- [x] Session utilities (`src/lib/session.ts`): `getSession()`, `requireUser()`, `requireRole(role)`.
+- [x] Build the real `/login` flow (request code → enter code) replacing the stub; honor `?next=`.
+- [x] `middleware.ts`: gate `/driver` and `/admin` by role; redirect unauthenticated users to `/login`.
+- [x] Thread the session user into `createBooking`/`createParcel` (use `passengerId`/`senderId` from the session instead of free‑text identity where logged in; keep guest fields as fallback).
 
 ### P3 — Driver & Admin depth
 - [ ] Driver: manage vehicles (add/edit), edit & cancel own trips, mark trip `ONGOING`/`COMPLETED`, view passengers + contact for a trip. Each is a validated server action with role check.

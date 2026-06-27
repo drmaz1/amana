@@ -13,9 +13,9 @@ import type { Booking, Parcel, Trip } from "@/types";
  * without the pages having to declare `dynamic`/`revalidate` themselves.
  */
 
-// Phone of the demo driver (أبو علي الكناني) used when no driver is supplied.
-// Replaced by the authenticated driver once sessions exist (P2).
-const DEMO_DRIVER_PHONE = "07701234567";
+// Phone (E.164) of the demo driver (أبو علي الكناني) used when no driver is
+// supplied. Replaced by the authenticated driver once sessions exist (P2).
+const DEMO_DRIVER_PHONE = "+9647701234567";
 
 // What every trip query needs to build the `Trip` view shape.
 const tripInclude = {

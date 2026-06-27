@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { createBookingRecord, SeatTakenError } from "@/lib/booking";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
 import { bookingSchema, type BookingInput } from "@/lib/validation";
 import { actionError, type ActionResult } from "./types";
 
@@ -37,18 +38,25 @@ export async function createBooking(
     return actionError("رقم مقعد غير صالح", "BAD_SEAT");
   }
 
-  // Guest account keyed by phone; replaced by the session user once auth lands.
-  const passenger = await prisma.user.upsert({
-    where: { phone: passengerPhone },
-    create: { name: passengerName, phone: passengerPhone, role: "PASSENGER" },
-    update: {},
-    select: { id: true },
-  });
+  // Logged-in users own the booking; guests get an account keyed by phone.
+  const session = await getSession();
+  let passengerId: string;
+  if (session) {
+    passengerId = session.userId;
+  } else {
+    const passenger = await prisma.user.upsert({
+      where: { phone: passengerPhone },
+      create: { name: passengerName, phone: passengerPhone, role: "PASSENGER" },
+      update: {},
+      select: { id: true },
+    });
+    passengerId = passenger.id;
+  }
 
   try {
     const booking = await createBookingRecord({
       tripId,
-      passengerId: passenger.id,
+      passengerId,
       seatNumbers,
       totalPrice: seatNumbers.length * trip.pricePerSeat,
       status: "CONFIRMED",
