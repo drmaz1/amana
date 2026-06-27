@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Amana — "safe passage" palette: deep teal-green + saffron */
+    --background: 45 19% 96%;
+    --foreground: 161 16% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 161 16% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 161 16% 12%;
+
+    --primary: 171 79% 20%;
+    --primary-foreground: 45 33% 97%;
+
+    --secondary: 45 16% 91%;
+    --secondary-foreground: 171 40% 16%;
+
+    --muted: 45 14% 92%;
+    --muted-foreground: 161 8% 40%;
+
+    --accent: 41 78% 50%;
+    --accent-foreground: 28 60% 14%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 42 14% 86%;
+    --input: 42 14% 86%;
+    --ring: 171 79% 24%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 168 30% 7%;
+    --foreground: 45 20% 94%;
+
+    --card: 168 26% 10%;
+    --card-foreground: 45 20% 94%;
+
+    --popover: 168 26% 10%;
+    --popover-foreground: 45 20% 94%;
+
+    --primary: 168 55% 45%;
+    --primary-foreground: 168 40% 8%;
+
+    --secondary: 168 18% 16%;
+    --secondary-foreground: 45 20% 94%;
+
+    --muted: 168 18% 16%;
+    --muted-foreground: 168 10% 62%;
+
+    --accent: 41 78% 52%;
+    --accent-foreground: 28 60% 12%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 168 18% 18%;
+    --input: 168 18% 18%;
+    --ring: 168 55% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "kern";
+    text-rendering: optimizeLegibility;
+  }
+  /* Tabular Arabic-Indic numerals for prices/seat counts */
+  .nums {
+    font-feature-settings: "tnum";
+  }
+}
+
+/* Subtle warm radial wash behind the hero */
+.hero-wash {
+  background:
+    radial-gradient(
+      120% 80% at 85% -10%,
+      hsl(41 78% 50% / 0.16),
+      transparent 55%
+    ),
+    radial-gradient(
+      120% 90% at 0% 0%,
+      hsl(171 79% 20% / 0.1),
+      transparent 50%
+    );
+}

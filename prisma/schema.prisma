@@ -1,0 +1,137 @@
+// Amana Platform — MVP schema
+// Inter-governorate seat booking + parcel transport (Iraq)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  PASSENGER
+  DRIVER
+  ADMIN
+}
+
+enum VehicleType {
+  SEDAN // سيارة صالون
+  VAN // كيا / فان
+  BUS // باص
+}
+
+enum TripStatus {
+  SCHEDULED // مجدولة
+  ONGOING // جارية
+  COMPLETED // مكتملة
+  CANCELLED // ملغاة
+}
+
+enum BookingStatus {
+  PENDING // بانتظار التأكيد
+  CONFIRMED // مؤكد
+  CANCELLED // ملغى
+  COMPLETED // منجز
+}
+
+enum ParcelStatus {
+  REQUESTED // طلب جديد
+  ACCEPTED // مقبول من سائق
+  IN_TRANSIT // قيد النقل
+  DELIVERED // مُسلّم
+  CANCELLED // ملغى
+}
+
+// ---------- Models ----------
+
+model User {
+  id          String    @id @default(cuid())
+  name        String
+  phone       String    @unique
+  role        Role      @default(PASSENGER)
+  createdAt   DateTime  @default(now())
+  // relations
+  vehicles    Vehicle[]
+  driverTrips Trip[]    @relation("DriverTrips")
+  bookings    Booking[] @relation("PassengerBookings")
+  parcelsSent Parcel[]  @relation("ParcelSender")
+
+  @@index([role])
+}
+
+model Vehicle {
+  id       String      @id @default(cuid())
+  driver   User        @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  driverId String
+  type     VehicleType @default(SEDAN)
+  model    String // e.g. "Toyota Avalon 2018"
+  plate    String      @unique
+  seats    Int         @default(4) // passenger seats (excludes driver)
+  trips    Trip[]
+
+  @@index([driverId])
+}
+
+model Trip {
+  id             String     @id @default(cuid())
+  driver         User       @relation("DriverTrips", fields: [driverId], references: [id])
+  driverId       String
+  vehicle        Vehicle    @relation(fields: [vehicleId], references: [id])
+  vehicleId      String
+  originId       String // governorate code, e.g. "baghdad"
+  destinationId  String // governorate code, e.g. "basra"
+  departureAt    DateTime
+  pricePerSeat   Int // IQD
+  totalSeats     Int
+  status         TripStatus @default(SCHEDULED)
+  acceptsParcels Boolean    @default(true)
+  parcelBasePrice Int? // IQD, base price for a small parcel
+  notes          String?
+  createdAt      DateTime   @default(now())
+  // relations
+  bookings       Booking[]
+  parcels        Parcel[]
+
+  @@index([originId, destinationId, departureAt])
+  @@index([driverId])
+  @@index([status])
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  trip        Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId      String
+  passenger   User          @relation("PassengerBookings", fields: [passengerId], references: [id])
+  passengerId String
+  seatNumbers Int[] // selected seat indexes
+  totalPrice  Int // IQD
+  status      BookingStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+
+  @@index([tripId])
+  @@index([passengerId])
+}
+
+model Parcel {
+  id            String       @id @default(cuid())
+  trip          Trip?        @relation(fields: [tripId], references: [id])
+  tripId        String?
+  sender        User         @relation("ParcelSender", fields: [senderId], references: [id])
+  senderId      String
+  originId      String
+  destinationId String
+  receiverName  String
+  receiverPhone String
+  description   String
+  weightKg      Float?
+  price         Int // IQD
+  status        ParcelStatus @default(REQUESTED)
+  createdAt     DateTime     @default(now())
+
+  @@index([originId, destinationId])
+  @@index([status])
+}
