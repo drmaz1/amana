@@ -53,6 +53,9 @@ model User {
   name        String
   phone       String    @unique
   role        Role      @default(PASSENGER)
+  // Driver reputation (display-only; null/0 for passengers and new drivers).
+  rating      Float?
+  tripsCount  Int       @default(0)
   createdAt   DateTime  @default(now())
   // relations
   vehicles    Vehicle[]
@@ -85,6 +88,7 @@ model Trip {
   originId       String // governorate code, e.g. "baghdad"
   destinationId  String // governorate code, e.g. "basra"
   departureAt    DateTime
+  durationMinutes Int? // estimated travel time, shown on trip/seat cards
   pricePerSeat   Int // IQD
   totalSeats     Int
   status         TripStatus @default(SCHEDULED)
@@ -94,6 +98,7 @@ model Trip {
   createdAt      DateTime   @default(now())
   // relations
   bookings       Booking[]
+  bookingSeats   BookingSeat[]
   parcels        Parcel[]
 
   @@index([originId, destinationId, departureAt])
@@ -107,13 +112,46 @@ model Booking {
   tripId      String
   passenger   User          @relation("PassengerBookings", fields: [passengerId], references: [id])
   passengerId String
-  seatNumbers Int[] // selected seat indexes
+  seatNumbers Int[] // denormalized display copy; BookingSeat is source of truth
   totalPrice  Int // IQD
   status      BookingStatus @default(PENDING)
   createdAt   DateTime      @default(now())
+  // relations
+  bookingSeats BookingSeat[]
 
   @@index([tripId])
   @@index([passengerId])
+}
+
+/// One row per held seat on a trip. The DB-level @@unique([tripId, seatNumber])
+/// makes double-booking impossible; booking creation runs in a transaction and
+/// a unique-constraint violation surfaces as a typed "seat taken" error.
+/// Cancelling a booking deletes its BookingSeat rows, freeing the seats.
+model BookingSeat {
+  id         String  @id @default(cuid())
+  trip       Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId     String
+  seatNumber Int
+  booking    Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId  String
+
+  @@unique([tripId, seatNumber])
+  @@index([tripId])
+  @@index([bookingId])
+}
+
+/// Phone OTP codes for passwordless auth. Codes are hashed, expire after a few
+/// minutes, and cap verification attempts.
+model OtpCode {
+  id         String    @id @default(cuid())
+  phone      String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([phone])
 }
 
 model Parcel {

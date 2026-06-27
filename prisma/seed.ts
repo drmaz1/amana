@@ -13,7 +13,8 @@ function at(dayOffset: number, hour: number, minute = 0): Date {
 async function main() {
   console.log("🌱 Seeding Amana database…");
 
-  // Clean slate (respect FK order: parcels/bookings → trips → vehicles → users).
+  // Clean slate (respect FK order: seats/parcels/bookings → trips → vehicles → users).
+  await prisma.bookingSeat.deleteMany();
   await prisma.parcel.deleteMany();
   await prisma.booking.deleteMany();
   await prisma.trip.deleteMany();
@@ -31,6 +32,8 @@ async function main() {
       name: "أبو علي الكناني",
       phone: "07701234567",
       role: "DRIVER",
+      rating: 4.8,
+      tripsCount: 312,
       vehicles: {
         create: {
           type: "SEDAN",
@@ -48,6 +51,8 @@ async function main() {
       name: "حيدر الموسوي",
       phone: "07712345678",
       role: "DRIVER",
+      rating: 4.6,
+      tripsCount: 178,
       vehicles: {
         create: {
           type: "VAN",
@@ -65,6 +70,8 @@ async function main() {
       name: "سيف الدليمي",
       phone: "07723456789",
       role: "DRIVER",
+      rating: 4.9,
+      tripsCount: 421,
       vehicles: {
         create: {
           type: "SEDAN",
@@ -82,6 +89,8 @@ async function main() {
       name: "كاروان أحمد",
       phone: "07734567890",
       role: "DRIVER",
+      rating: 4.7,
+      tripsCount: 256,
       vehicles: {
         create: {
           type: "VAN",
@@ -130,6 +139,7 @@ async function main() {
       originId: "baghdad",
       destinationId: "basra",
       departureAt: at(0, 7, 30),
+      durationMinutes: 330,
       pricePerSeat: 25000,
       totalSeats: 4,
       acceptsParcels: true,
@@ -145,6 +155,7 @@ async function main() {
       originId: "baghdad",
       destinationId: "basra",
       departureAt: at(0, 9, 0),
+      durationMinutes: 360,
       pricePerSeat: 20000,
       totalSeats: 7,
       acceptsParcels: true,
@@ -159,6 +170,7 @@ async function main() {
       originId: "baghdad",
       destinationId: "basra",
       departureAt: at(0, 14, 0),
+      durationMinutes: 320,
       pricePerSeat: 30000,
       totalSeats: 4,
       acceptsParcels: false,
@@ -173,6 +185,7 @@ async function main() {
       originId: "baghdad",
       destinationId: "erbil",
       departureAt: at(0, 8, 0),
+      durationMinutes: 300,
       pricePerSeat: 22000,
       totalSeats: 7,
       acceptsParcels: true,
@@ -187,6 +200,7 @@ async function main() {
       originId: "baghdad",
       destinationId: "najaf",
       departureAt: at(0, 10, 30),
+      durationMinutes: 150,
       pricePerSeat: 15000,
       totalSeats: 4,
       acceptsParcels: true,
@@ -201,6 +215,7 @@ async function main() {
       originId: "basra",
       destinationId: "baghdad",
       departureAt: at(1, 7, 0),
+      durationMinutes: 330,
       pricePerSeat: 28000,
       totalSeats: 4,
       acceptsParcels: true,
@@ -215,6 +230,7 @@ async function main() {
       originId: "karbala",
       destinationId: "baghdad",
       departureAt: at(1, 12, 0),
+      durationMinutes: 120,
       pricePerSeat: 12000,
       totalSeats: 7,
       acceptsParcels: true,
@@ -222,38 +238,54 @@ async function main() {
     },
   });
 
-  // ---------- Bookings ----------
-  await prisma.booking.createMany({
-    data: [
-      {
-        tripId: t1.id,
-        passengerId: mustafa.id,
-        seatNumbers: [1],
-        totalPrice: 25000,
-        status: "CONFIRMED",
+  // ---------- Bookings (+ their held seats) ----------
+  // BookingSeat is the source of truth for availability, so every booked seat
+  // is created here alongside the booking. `seatNumbers` is the denormalized
+  // display copy.
+  await prisma.booking.create({
+    data: {
+      tripId: t1.id,
+      passengerId: mustafa.id,
+      seatNumbers: [1],
+      totalPrice: 25000,
+      status: "CONFIRMED",
+      bookingSeats: { create: [{ tripId: t1.id, seatNumber: 1 }] },
+    },
+  });
+  await prisma.booking.create({
+    data: {
+      tripId: t1.id,
+      passengerId: zainab.id,
+      seatNumbers: [3],
+      totalPrice: 25000,
+      status: "CONFIRMED",
+      bookingSeats: { create: [{ tripId: t1.id, seatNumber: 3 }] },
+    },
+  });
+  await prisma.booking.create({
+    data: {
+      tripId: t4.id,
+      passengerId: aram.id,
+      seatNumbers: [1, 2],
+      totalPrice: 44000,
+      status: "PENDING",
+      bookingSeats: {
+        create: [
+          { tripId: t4.id, seatNumber: 1 },
+          { tripId: t4.id, seatNumber: 2 },
+        ],
       },
-      {
-        tripId: t1.id,
-        passengerId: zainab.id,
-        seatNumbers: [3],
-        totalPrice: 25000,
-        status: "CONFIRMED",
-      },
-      {
-        tripId: t4.id,
-        passengerId: aram.id,
-        seatNumbers: [1, 2],
-        totalPrice: 44000,
-        status: "PENDING",
-      },
-      {
-        tripId: t5.id,
-        passengerId: ali.id,
-        seatNumbers: [4],
-        totalPrice: 15000,
-        status: "CONFIRMED",
-      },
-    ],
+    },
+  });
+  await prisma.booking.create({
+    data: {
+      tripId: t5.id,
+      passengerId: ali.id,
+      seatNumbers: [4],
+      totalPrice: 15000,
+      status: "CONFIRMED",
+      bookingSeats: { create: [{ tripId: t5.id, seatNumber: 4 }] },
+    },
   });
 
   // ---------- Parcels ----------
@@ -300,15 +332,16 @@ async function main() {
     },
   });
 
-  const [users, trips, bookings, parcels] = await Promise.all([
+  const [users, trips, bookings, seats, parcels] = await Promise.all([
     prisma.user.count(),
     prisma.trip.count(),
     prisma.booking.count(),
+    prisma.bookingSeat.count(),
     prisma.parcel.count(),
   ]);
 
   console.log(
-    `✅ Done — ${users} users, ${trips} trips, ${bookings} bookings, ${parcels} parcels.`,
+    `✅ Done — ${users} users, ${trips} trips, ${bookings} bookings, ${seats} seats, ${parcels} parcels.`,
   );
 }
 

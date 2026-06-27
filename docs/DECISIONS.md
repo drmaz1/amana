@@ -2,6 +2,32 @@
 
 Non-obvious choices made while completing Amana per `CLAUDE.md`. Newest first.
 
+## P0.2 — Schema & seed
+
+- **Display fields added beyond §4.** To keep the data-layer return shapes exact
+  and let pages render identically, three display fields were added:
+  `Trip.durationMinutes Int?`, `User.rating Float?`, `User.tripsCount Int @default(0)`.
+  The mock encoded per-trip durations and per-driver reputation that the schema
+  had no home for; a static route table couldn't reproduce per-trip variance
+  (e.g. Baghdad→Basra mocked at 330/360/320 min). New drivers created via
+  `createTrip` get `tripsCount = 0` and `rating = null` (rendered as `0.0`)
+  until a reviews feature exists.
+
+- **`BookingSeat` is the source of truth for availability.** The seed creates a
+  `BookingSeat` row for every booked seat. The mock's `Trip.bookedSeats` listed
+  some seats with **no backing booking** (Baghdad→Basra 09:00 seat 2,
+  Baghdad→Erbil seat 5, Basra→Baghdad seats 2–3). Those "phantom" seats are gone
+  now that availability derives from real bookings — so a few seat maps show
+  one or two more available seats than the old mock. This is intentional: a
+  blocked seat with no booking is not a real state. The bookings/admin tables
+  still show exactly the original four bookings.
+
+- **First migration replaces `db push`.** `prisma migrate dev --name init`
+  generated `20260627193703_init` containing the full schema incl. the
+  `BookingSeat(tripId, seatNumber)` unique index. `db:push` was removed from
+  npm scripts. DB data confirmed via a Prisma query (Studio is interactive and
+  can't run headless here).
+
 ## Baseline / environment
 
 - **`tsconfig.json` `target` set to `ES2017`.** The inherited config omitted
