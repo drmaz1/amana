@@ -1,7 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import { prisma } from "@/lib/prisma";
 import { generateReference } from "@/lib/reference";
 import { tripSchema, type TripInput } from "@/lib/validation";
@@ -67,9 +65,8 @@ export async function createTrip(
       select: { id: true },
     });
 
-    revalidatePath("/driver");
-    revalidatePath("/");
-    revalidatePath("/search");
+    // The driver dashboard calls router.refresh() after this resolves; reads
+    // are uncached (noStore), so no revalidatePath is needed.
     return { ok: true, tripId: trip.id };
   } catch (e) {
     console.error("createTrip failed:", e);

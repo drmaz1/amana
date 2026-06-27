@@ -1,7 +1,6 @@
 "use server";
 
 import { Prisma } from "@prisma/client";
-import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 import { estimateParcelPrice } from "@/lib/pricing";
@@ -57,7 +56,8 @@ export async function createParcel(
         },
         select: { reference: true },
       });
-      revalidatePath("/admin");
+      // No revalidatePath: reads are uncached (noStore) and revalidating here
+      // would remount this form and drop the success state.
       return { ok: true, reference: parcel.reference, price };
     } catch (e) {
       if (

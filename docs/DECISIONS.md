@@ -2,6 +2,18 @@
 
 Non-obvious choices made while completing Amana per `CLAUDE.md`. Newest first.
 
+## P5 — Hardening
+
+- **No `revalidatePath` in the write actions.** Every read goes through the
+  data layer's `noStore()` queries, so trip/seat/driver/admin pages already
+  render fresh on each request — `revalidatePath` was redundant. Worse, calling
+  it inside an action invoked from a client form triggered a router refresh that
+  **remounted the form and dropped the success state**, so the booking/parcel
+  confirmation screens (and their `AMN-`/`PKG-` references) never appeared even
+  though the writes persisted. Removing the calls fixed it; the Playwright e2e
+  (search → seat → confirm) now passes. The driver dashboard still updates via
+  its own `router.refresh()`.
+
 ## P2 — Auth
 
 - **Phones are stored in E.164 everywhere.** Per the brief ("store E.164,

@@ -1,7 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import { createBookingRecord, SeatTakenError } from "@/lib/booking";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
@@ -61,10 +59,10 @@ export async function createBooking(
       totalPrice: seatNumbers.length * trip.pricePerSeat,
       status: "CONFIRMED",
     });
-    revalidatePath(`/trips/${tripId}`);
-    revalidatePath(`/trips/${tripId}/seats`);
-    revalidatePath("/driver");
-    revalidatePath("/admin");
+    // No revalidatePath needed: every read goes through the data layer's
+    // noStore() queries, so trip/seat/driver/admin pages already render fresh
+    // on each request. (Calling revalidatePath here would refresh the current
+    // route and remount this form, dropping the success state.)
     return { ok: true, reference: booking.reference, bookingId: booking.id };
   } catch (e) {
     if (e instanceof SeatTakenError) {
