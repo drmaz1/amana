@@ -89,10 +89,10 @@ In `prisma/schema.prisma`:
 
 ### P1 — Real write operations (server actions)
 - [ ] `src/lib/validation/` — zod schemas: `bookingSchema`, `parcelSchema`, `tripSchema`, `otpRequestSchema`, `otpVerifySchema`.
-- [ ] `createBooking` action: validate → `prisma.$transaction` that inserts `BookingSeat` rows (unique constraint guarantees no double‑book) + the `Booking` → on success `revalidatePath` the trip/seat pages → return the booking reference. Surface a clear "seat already taken" error to the UI on conflict. Refactor `booking-confirm.tsx` to call it (replace the mock success).
+- [x] `createBooking` action: validate → `prisma.$transaction` that inserts `BookingSeat` rows (unique constraint guarantees no double‑book) + the `Booking` → on success `revalidatePath` the trip/seat pages → return the booking reference. Surface a clear "seat already taken" error to the UI on conflict. Refactor `booking-confirm.tsx` to call it (replace the mock success).
 - [ ] `createParcel` action: validate → insert `Parcel` → success state with reference. Refactor `parcel-form.tsx`.
 - [ ] `createTrip` action: validate → insert `Trip` (+ create/select the driver's `Vehicle`) → revalidate `/driver`. Refactor the driver "add trip" form to persist for real.
-- [ ] Unit‑test the booking transaction (including the concurrent double‑book case → exactly one succeeds).
+- [x] Unit‑test the booking transaction (including the concurrent double‑book case → exactly one succeeds).
 
 ### P2 — Authentication & roles
 - [ ] `SmsProvider` interface + `ConsoleSmsProvider` + `HttpSmsProvider` stub (`src/lib/sms/`).

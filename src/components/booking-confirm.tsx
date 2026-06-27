@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Armchair,
   CalendarDays,
@@ -12,8 +13,11 @@ import {
   Phone,
   Ticket,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import type { Trip } from "@/types";
+import { createBooking } from "@/lib/actions/booking";
+import { isValidIraqiPhone } from "@/lib/phone";
 import {
   formatArabicDate,
   formatDuration,
@@ -29,11 +33,6 @@ import { Separator } from "@/components/ui/separator";
 
 const arNum = (n: number) => new Intl.NumberFormat("ar-IQ").format(n);
 
-/** A throwaway booking reference for the demo, e.g. "AMN-4827". */
-function makeRef() {
-  return "AMN-" + Math.floor(1000 + Math.random() * 9000);
-}
-
 export function BookingConfirm({
   trip,
   seats,
@@ -41,6 +40,7 @@ export function BookingConfirm({
   trip: Trip;
   seats: number[];
 }) {
+  const router = useRouter();
   const [name, setName] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [status, setStatus] = React.useState<"idle" | "loading" | "done">(
@@ -49,16 +49,29 @@ export function BookingConfirm({
   const [reference, setReference] = React.useState("");
 
   const total = seats.length * trip.pricePerSeat;
-  const valid = name.trim().length >= 2 && phone.trim().length >= 7;
+  const valid = name.trim().length >= 2 && isValidIraqiPhone(phone);
 
-  function confirm() {
-    if (!valid) return;
+  async function confirm() {
+    if (!valid || status === "loading") return;
     setStatus("loading");
-    // Mock async confirmation (no backend write in the MVP).
-    setTimeout(() => {
-      setReference(makeRef());
+    const res = await createBooking({
+      tripId: trip.id,
+      seats,
+      passengerName: name.trim(),
+      passengerPhone: phone.trim(),
+    });
+    if (res.ok) {
+      setReference(res.reference);
       setStatus("done");
-    }, 900);
+      toast.success("تم تأكيد حجزك");
+      return;
+    }
+    setStatus("idle");
+    toast.error(res.error);
+    if (res.code === "SEAT_TAKEN") {
+      // The chosen seats were just taken — send the user back to re-pick.
+      router.push(`/trips/${trip.id}/seats`);
+    }
   }
 
   if (status === "done") {
