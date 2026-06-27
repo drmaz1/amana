@@ -82,10 +82,10 @@ In `prisma/schema.prisma`:
 - [x] Add deps: `zod`, `jose`, `sonner`. Dev: `vitest`, `@testing-library/react`, `@playwright/test`. Add npm scripts: `typecheck` (`tsc --noEmit`), `test` (`vitest run`), `test:e2e` (`playwright test`).
 - [x] Apply the schema changes in §4 and create the initial migration. Seed the DB and confirm `npm run db:studio` shows data.
 - [x] Implement real Prisma queries in `src/lib/data.ts` for **all** existing functions, preserving return shapes. Derive seat availability from `BookingSeat`. Verify every page renders identically against the DB.
-- [ ] Add `loading.tsx`, `error.tsx`, and `not-found.tsx` (route‑group level + a global `app/not-found.tsx`) with on‑brand, RTL skeletons/messages.
-- [ ] Mount `<Toaster />` (sonner) in `layout.tsx`.
-- [ ] Add `src/lib/phone.ts` (normalize/validate Iraqi numbers) with unit tests.
-- [ ] Add `src/lib/pricing.ts` (parcel estimate) with unit tests; refactor the parcel form to use it.
+- [x] Add `loading.tsx`, `error.tsx`, and `not-found.tsx` (route‑group level + a global `app/not-found.tsx`) with on‑brand, RTL skeletons/messages.
+- [x] Mount `<Toaster />` (sonner) in `layout.tsx`.
+- [x] Add `src/lib/phone.ts` (normalize/validate Iraqi numbers) with unit tests.
+- [x] Add `src/lib/pricing.ts` (parcel estimate) with unit tests; refactor the parcel form to use it.
 
 ### P1 — Real write operations (server actions)
 - [ ] `src/lib/validation/` — zod schemas: `bookingSchema`, `parcelSchema`, `tripSchema`, `otpRequestSchema`, `otpVerifySchema`.

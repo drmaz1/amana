@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { GOVERNORATES, governorateName } from "@/lib/governorates";
+import { estimateParcelPrice } from "@/lib/pricing";
 import { formatIQD } from "@/lib/utils";
 import { RouteLine } from "@/components/route-line";
 import { Button } from "@/components/ui/button";
@@ -28,15 +29,6 @@ import {
 } from "@/components/ui/select";
 
 const arNum = (n: number) => new Intl.NumberFormat("ar-IQ").format(n);
-
-// Transparent MVP estimate: a base fee plus a per-kg rate.
-const BASE_FEE = 6000;
-const PER_KG = 1000;
-
-function estimatePrice(weightKg: number): number {
-  const kg = Number.isFinite(weightKg) && weightKg > 0 ? weightKg : 1;
-  return BASE_FEE + Math.ceil(kg) * PER_KG;
-}
 
 function makeRef() {
   return "PKG-" + Math.floor(1000 + Math.random() * 9000);
@@ -62,7 +54,7 @@ export function ParcelForm({
   );
   const [reference, setReference] = React.useState("");
 
-  const price = estimatePrice(Number(weight));
+  const price = estimateParcelPrice(Number(weight));
   const sameCity = from === to;
   const valid =
     !sameCity &&
