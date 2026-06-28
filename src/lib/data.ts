@@ -1,5 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache";
 
+import { demoData } from "@/lib/demo-data";
+import { isDemoMode } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
 import type { Booking, Parcel, Trip } from "@/types";
 
@@ -133,6 +135,7 @@ async function resolveDriverId(driverId?: string): Promise<string | null> {
 
 export async function getAllTrips(): Promise<Trip[]> {
   noStore();
+  if (isDemoMode()) return demoData.allTrips();
   const trips = await prisma.trip.findMany({
     include: tripInclude,
     orderBy: { departureAt: "asc" },
@@ -145,6 +148,7 @@ export async function searchTrips(params: {
   to?: string;
 }): Promise<Trip[]> {
   noStore();
+  if (isDemoMode()) return demoData.search(params);
   const { from, to } = params;
   const trips = await prisma.trip.findMany({
     where: {
@@ -160,6 +164,7 @@ export async function searchTrips(params: {
 
 export async function getTrip(id: string): Promise<Trip | undefined> {
   noStore();
+  if (isDemoMode()) return demoData.trip(id);
   const trip = await prisma.trip.findUnique({
     where: { id },
     include: tripInclude,
@@ -169,6 +174,7 @@ export async function getTrip(id: string): Promise<Trip | undefined> {
 
 export async function getBookingsForTrip(tripId: string): Promise<Booking[]> {
   noStore();
+  if (isDemoMode()) return demoData.bookingsForTrip(tripId);
   const bookings = await prisma.booking.findMany({
     where: { tripId },
     include: { passenger: { select: { name: true } } },
@@ -180,6 +186,7 @@ export async function getBookingsForTrip(tripId: string): Promise<Booking[]> {
 /** Trips owned by a given driver (defaults to the demo driver). */
 export async function getDriverTrips(driverId?: string): Promise<Trip[]> {
   noStore();
+  if (isDemoMode()) return demoData.driverTrips();
   const id = await resolveDriverId(driverId);
   if (!id) return [];
   const trips = await prisma.trip.findMany({
@@ -192,6 +199,7 @@ export async function getDriverTrips(driverId?: string): Promise<Trip[]> {
 
 export async function getDriverBookings(driverId?: string): Promise<Booking[]> {
   noStore();
+  if (isDemoMode()) return demoData.driverBookings();
   const id = await resolveDriverId(driverId);
   if (!id) return [];
   const bookings = await prisma.booking.findMany({
@@ -204,6 +212,7 @@ export async function getDriverBookings(driverId?: string): Promise<Booking[]> {
 
 export async function getAllBookings(): Promise<Booking[]> {
   noStore();
+  if (isDemoMode()) return demoData.allBookings();
   const bookings = await prisma.booking.findMany({
     include: { passenger: { select: { name: true } } },
     orderBy: { createdAt: "asc" },
@@ -213,6 +222,7 @@ export async function getAllBookings(): Promise<Booking[]> {
 
 export async function getAllParcels(): Promise<Parcel[]> {
   noStore();
+  if (isDemoMode()) return demoData.allParcels();
   const parcels = await prisma.parcel.findMany({
     include: { sender: { select: { name: true } } },
     orderBy: { createdAt: "asc" },
@@ -225,6 +235,7 @@ export async function getPopularRoutes(): Promise<
   { originId: string; destinationId: string; fromPrice: number; count: number }[]
 > {
   noStore();
+  if (isDemoMode()) return demoData.popularRoutes();
   const groups = await prisma.trip.groupBy({
     by: ["originId", "destinationId"],
     _count: { _all: true },

@@ -15,6 +15,9 @@ import {
  * required role are sent home.
  */
 export async function middleware(req: NextRequest) {
+  // Demo mode (no database) → no auth, everything open.
+  if (!process.env.DATABASE_URL) return NextResponse.next();
+
   const { pathname } = req.nextUrl;
   const needed: Role | null = pathname.startsWith("/admin")
     ? "ADMIN"

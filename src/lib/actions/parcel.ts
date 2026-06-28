@@ -2,6 +2,7 @@
 
 import { Prisma } from "@prisma/client";
 
+import { demoReference, isDemoMode } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
 import { estimateParcelPrice } from "@/lib/pricing";
 import { generateReference } from "@/lib/reference";
@@ -34,6 +35,10 @@ export async function createParcel(
     weightKg,
   } = parsed.data;
   const price = estimateParcelPrice(weightKg ?? 1);
+
+  if (isDemoMode()) {
+    return { ok: true, reference: demoReference("PKG"), price };
+  }
 
   // Link to the sender's account when signed in; otherwise keep the guest name.
   const session = await getSession();

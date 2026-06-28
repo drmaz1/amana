@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { isDemoMode } from "@/lib/demo";
 import { getSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { AmanaMark } from "@/components/amana-logo";
@@ -12,6 +13,9 @@ export default async function LoginPage({
 }: {
   searchParams: { next?: string };
 }) {
+  // No login in demo mode (no database) — send visitors straight in.
+  if (isDemoMode()) redirect("/");
+
   // Only honor internal (same-site) redirect targets.
   const next =
     searchParams.next && searchParams.next.startsWith("/")

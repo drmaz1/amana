@@ -2,6 +2,18 @@
 
 Non-obvious choices made while completing Amana per `CLAUDE.md`. Newest first.
 
+## Demo mode (no database)
+
+- **When `DATABASE_URL` is unset, the whole app runs on in-memory mock data**
+  (`src/lib/demo-data.ts`) with auth disabled, so it can be browsed end-to-end
+  with zero setup (`npm install && npm run dev`). `isDemoMode()` gates this in
+  one place each: the data layer returns mocks, write actions return optimistic
+  success (fake `AMN-`/`PKG-` refs), `getSession()` returns a synthetic admin,
+  the middleware skips gating, the header hides the login button (shows a
+  "وضع العرض" chip), and `/login` redirects home. Setting `DATABASE_URL`
+  switches everything back to the real DB-backed behavior automatically — no
+  code change. The `build` works without a DB (pages are dynamic via `noStore`).
+
 ## P5 — Hardening
 
 - **No `revalidatePath` in the write actions.** Every read goes through the

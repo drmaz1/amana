@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { DEMO_SESSION, isDemoMode } from "./demo";
 import {
   SESSION_COOKIE,
   SESSION_MAX_AGE_SECONDS,
@@ -15,6 +16,7 @@ export type { Role, SessionPayload } from "./session-token";
 
 /** Current session, or null if not signed in. Safe in server components. */
 export async function getSession(): Promise<SessionPayload | null> {
+  if (isDemoMode()) return DEMO_SESSION; // no auth without a database
   const token = cookies().get(SESSION_COOKIE)?.value;
   return verifySession(token);
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { createBookingRecord, SeatTakenError } from "@/lib/booking";
+import { demoReference, isDemoMode } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { bookingSchema, type BookingInput } from "@/lib/validation";
@@ -23,6 +24,10 @@ export async function createBooking(
   }
   const { tripId, seats, passengerName, passengerPhone } = parsed.data;
   const seatNumbers = [...new Set(seats)].sort((a, b) => a - b);
+
+  if (isDemoMode()) {
+    return { ok: true, reference: demoReference("AMN"), bookingId: "demo" };
+  }
 
   const trip = await prisma.trip.findUnique({
     where: { id: tripId },

@@ -1,5 +1,6 @@
 "use server";
 
+import { isDemoMode } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
 import { generateReference } from "@/lib/reference";
 import { getSession } from "@/lib/session";
@@ -36,6 +37,8 @@ export async function createTrip(
   }
   const d = parsed.data;
   const driverId = session.userId;
+
+  if (isDemoMode()) return { ok: true, tripId: "demo-trip" };
 
   try {
     const vehicle =
@@ -99,6 +102,8 @@ export async function setTripStatus(
   if (!TRIP_STATUSES.includes(status)) {
     return actionError("حالة غير صالحة", "VALIDATION");
   }
+
+  if (isDemoMode()) return { ok: true };
 
   const trip = await prisma.trip.findUnique({
     where: { id: tripId },
