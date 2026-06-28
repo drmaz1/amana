@@ -44,6 +44,8 @@ export type Booking = {
   id: string;
   tripId: string;
   passengerName: string;
+  /** Passenger phone (E.164), included for the driver's bookings only. */
+  passengerPhone?: string | null;
   seatNumbers: number[];
   totalPrice: number;
   status: BookingStatus;

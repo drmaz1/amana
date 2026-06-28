@@ -45,10 +45,10 @@ const seatTotal = (tripId: string, seats: number[]) => {
 };
 
 const BOOKINGS: (Booking & { reference: string })[] = [
-  { id: "b1", reference: "AMN-1001", tripId: "t1", passengerName: "مصطفى عبد الله", seatNumbers: [1], totalPrice: seatTotal("t1", [1]), status: "CONFIRMED", createdAt: at(-1, 18, 0) },
-  { id: "b2", reference: "AMN-1002", tripId: "t1", passengerName: "زينب حسن", seatNumbers: [3], totalPrice: seatTotal("t1", [3]), status: "CONFIRMED", createdAt: at(-1, 20, 0) },
-  { id: "b3", reference: "AMN-1003", tripId: "t4", passengerName: "آرام رشيد", seatNumbers: [1, 2], totalPrice: seatTotal("t4", [1, 2]), status: "PENDING", createdAt: at(0, 6, 30) },
-  { id: "b4", reference: "AMN-1004", tripId: "t5", passengerName: "علي كريم", seatNumbers: [4], totalPrice: seatTotal("t5", [4]), status: "CONFIRMED", createdAt: at(0, 7, 0) },
+  { id: "b1", reference: "AMN-1001", tripId: "t1", passengerName: "مصطفى عبد الله", passengerPhone: "07801112233", seatNumbers: [1], totalPrice: seatTotal("t1", [1]), status: "CONFIRMED", createdAt: at(-1, 18, 0) },
+  { id: "b2", reference: "AMN-1002", tripId: "t1", passengerName: "زينب حسن", passengerPhone: "07812223344", seatNumbers: [3], totalPrice: seatTotal("t1", [3]), status: "CONFIRMED", createdAt: at(-1, 20, 0) },
+  { id: "b3", reference: "AMN-1003", tripId: "t4", passengerName: "آرام رشيد", passengerPhone: "07503334455", seatNumbers: [1, 2], totalPrice: seatTotal("t4", [1, 2]), status: "PENDING", createdAt: at(0, 6, 30) },
+  { id: "b4", reference: "AMN-1004", tripId: "t5", passengerName: "علي كريم", passengerPhone: "07704445566", seatNumbers: [4], totalPrice: seatTotal("t5", [4]), status: "CONFIRMED", createdAt: at(0, 7, 0) },
 ];
 
 const PARCELS: (Parcel & { reference: string })[] = [

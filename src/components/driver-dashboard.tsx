@@ -9,6 +9,7 @@ import {
   Clock,
   Loader2,
   Package,
+  Phone,
   Plus,
   Users,
   X,
@@ -18,6 +19,7 @@ import { toast } from "sonner";
 import type { Booking, Trip, VehicleType } from "@/types";
 import { cancelTrip, createTrip, setTripStatus } from "@/lib/actions/trip";
 import { GOVERNORATES } from "@/lib/governorates";
+import { toE164, toLocalPhone } from "@/lib/phone";
 import {
   categoryLabel,
   getSeatLayout,
@@ -196,6 +198,18 @@ export function DriverDashboard({
                       </div>
                       <BookingStatusBadge status={b.status} />
                     </div>
+
+                    {b.passengerPhone && (
+                      <a
+                        href={`tel:${toE164(b.passengerPhone) ?? b.passengerPhone}`}
+                        className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                      >
+                        <Phone className="h-3.5 w-3.5" />
+                        <span className="nums">
+                          {toLocalPhone(b.passengerPhone) ?? b.passengerPhone}
+                        </span>
+                      </a>
+                    )}
 
                     {trip && (
                       <>

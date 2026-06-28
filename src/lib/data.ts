@@ -77,7 +77,7 @@ function toTrip(t: TripRow): Trip {
 type BookingRow = {
   id: string;
   tripId: string;
-  passenger: { name: string };
+  passenger: { name: string; phone?: string | null };
   seatNumbers: number[];
   totalPrice: number;
   status: Booking["status"];
@@ -89,6 +89,7 @@ function toBooking(b: BookingRow): Booking {
     id: b.id,
     tripId: b.tripId,
     passengerName: b.passenger.name,
+    passengerPhone: b.passenger.phone ?? null,
     seatNumbers: b.seatNumbers,
     totalPrice: b.totalPrice,
     status: b.status,
@@ -210,7 +211,8 @@ export async function getDriverBookings(driverId?: string): Promise<Booking[]> {
   if (!id) return [];
   const bookings = await prisma.booking.findMany({
     where: { trip: { driverId: id } },
-    include: { passenger: { select: { name: true } } },
+    // The driver may contact their passengers, so include the phone here.
+    include: { passenger: { select: { name: true, phone: true } } },
     orderBy: { createdAt: "asc" },
   });
   return bookings.map(toBooking);
