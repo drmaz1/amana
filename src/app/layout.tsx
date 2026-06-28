@@ -37,12 +37,23 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// Applies the persisted theme before first paint (reads the `theme` cookie, not
+// localStorage). Kept inline so the root layout stays static — calling cookies()
+// here would force every route, including /_not-found, to render dynamically.
+const themeScript = `(function(){try{var m=document.cookie.match(/(?:^|; )theme=(dark|light)/);if(m&&m[1]==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ar" dir="rtl" className={`${display.variable} ${body.variable}`}>
+    <html
+      lang="ar"
+      dir="rtl"
+      className={`${display.variable} ${body.variable}`}
+      suppressHydrationWarning
+    >
       <body className="font-sans antialiased">
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         {children}
         <Toaster
           position="top-center"

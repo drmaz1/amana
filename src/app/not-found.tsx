@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { Compass, Home, Search } from "lucide-react";
 
-import { AppShell } from "@/components/app-shell";
+import { FallbackShell } from "@/components/fallback-shell";
 import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
-    <AppShell>
+    <FallbackShell>
       <div className="mx-auto max-w-md py-12 text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
           <Compass className="h-8 w-8" />
@@ -32,6 +32,6 @@ export default function NotFound() {
           </Button>
         </div>
       </div>
-    </AppShell>
+    </FallbackShell>
   );
 }

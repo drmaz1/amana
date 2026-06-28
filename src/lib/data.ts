@@ -3,6 +3,7 @@ import { unstable_noStore as noStore } from "next/cache";
 import { demoData } from "@/lib/demo-data";
 import { isDemoMode } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
+import type { Role } from "@/lib/session-token";
 import type { Booking, Parcel, Trip } from "@/types";
 
 /**
@@ -230,6 +231,39 @@ export async function getAllParcels(): Promise<Parcel[]> {
     orderBy: { createdAt: "asc" },
   });
   return parcels.map(toParcel);
+}
+
+export type UserProfile = {
+  name: string;
+  phone: string | null;
+  role: Role;
+  createdAt: string;
+};
+
+/** The signed-in user's profile (name/phone/role/member-since). */
+export async function getUserProfile(userId: string): Promise<UserProfile> {
+  noStore();
+  if (isDemoMode()) {
+    return {
+      name: "زائر",
+      phone: null,
+      role: "ADMIN",
+      createdAt: new Date().toISOString(),
+    };
+  }
+  const u = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, phone: true, role: true, createdAt: true },
+  });
+  if (!u) {
+    return { name: "", phone: null, role: "PASSENGER", createdAt: new Date().toISOString() };
+  }
+  return {
+    name: u.name,
+    phone: u.phone,
+    role: u.role,
+    createdAt: u.createdAt.toISOString(),
+  };
 }
 
 export type MyBooking = {

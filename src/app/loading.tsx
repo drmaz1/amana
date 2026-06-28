@@ -1,9 +1,9 @@
-import { AppShell } from "@/components/app-shell";
+import { FallbackShell } from "@/components/fallback-shell";
 
 /** On-brand RTL skeleton shown while a route's data loads. */
 export default function Loading() {
   return (
-    <AppShell>
+    <FallbackShell>
       <div className="animate-pulse" aria-hidden="true">
         {/* header line */}
         <div className="mb-5 flex items-center justify-between">
@@ -33,6 +33,6 @@ export default function Loading() {
         </div>
       </div>
       <span className="sr-only">جارٍ التحميل…</span>
-    </AppShell>
+    </FallbackShell>
   );
 }

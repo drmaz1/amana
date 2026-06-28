@@ -2,6 +2,38 @@
 
 Non-obvious choices made while completing Amana per `CLAUDE.md`. Newest first.
 
+## Account, settings, profile & auth-aware header
+
+- **Header user menu.** The site header now shows who's signed in (avatar +
+  name) with a `<details>`-based dropdown (`src/components/user-menu.tsx`, no
+  new Radix dep) linking to رحلاتي `/me`, الملف الشخصي `/account`, الإعدادات
+  `/settings`, and a real **logout** (`<form action={logout}>`, hidden in demo).
+  When signed out it shows a دخول button. The session read is isolated in an
+  async `HeaderUserMenu` server component rendered inside `<Suspense>`.
+
+- **`FallbackShell` for not-found/error/loading.** These three shells must not
+  pull `next/headers` (via the session helpers) into their bundle — `error.tsx`
+  is a Client Component, so importing the auth-aware `SiteHeader` chain made the
+  whole build fail ("next/headers only works in a Server Component"), and any
+  `cookies()` reach would also risk making `/_not-found` dynamic. So they use a
+  dedicated logo-only `FallbackShell` (`src/components/fallback-shell.tsx`) that
+  imports neither `SiteHeader` nor the session layer. Verified: `/_not-found`
+  stays `○` (static) in the build output.
+
+- **Dark mode without a server cookie read in the root layout.** Reading the
+  `theme` cookie in `app/layout.tsx` would call `cookies()` on every route and
+  force them all (incl. `/_not-found`) to render dynamically. Instead a tiny
+  blocking inline script in `<body>` reads the `theme` cookie and applies the
+  `dark` class before first paint (no FOUC), `<html suppressHydrationWarning>`.
+  The `ThemeToggle` flips the same non-httpOnly `theme` cookie + toggles the DOM
+  class instantly. No `localStorage` (golden rule); cookies only. The already-
+  dynamic `/settings` page reads the cookie server-side to seed the toggle.
+
+- **Profile edit = name only.** Phone is the login identity (shown read-only as
+  local `07…`). `updateProfile` re-mints the session cookie via
+  `setSessionCookie` after the DB write so the header name updates without a
+  re-login. Demo mode returns optimistic success and skips the DB/cookie write.
+
 ## Vehicles & per-seat pricing
 
 - **Three vehicle types with realistic cabin layouts** (`src/lib/seats.ts`):

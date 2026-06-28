@@ -1,10 +1,16 @@
+import { Suspense } from "react";
 import Link from "next/link";
-import { LogIn } from "lucide-react";
 
 import { isDemoMode } from "@/lib/demo";
 import { AmanaLogo } from "@/components/amana-logo";
+import { HeaderUserMenu } from "@/components/header-user-menu";
 import { Button } from "@/components/ui/button";
 
+/**
+ * The auth-aware site header. Reads the session cookie (inside the isolated
+ * `HeaderUserMenu`), so it's used only on real pages via `AppShell`; the
+ * not-found/error/loading shells render `FallbackShell` instead.
+ */
 export function SiteHeader() {
   const demo = isDemoMode();
   return (
@@ -14,23 +20,27 @@ export function SiteHeader() {
           <AmanaLogo />
         </Link>
 
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-2">
           {demo && (
             <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-secondary-foreground">
               وضع العرض
             </span>
           )}
-          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="hidden sm:inline-flex"
+          >
             <Link href="/driver">للسائقين</Link>
           </Button>
-          {!demo && (
-            <Button asChild variant="outline" size="sm">
-              <Link href="/login">
-                <LogIn className="h-4 w-4" />
-                دخول
-              </Link>
-            </Button>
-          )}
+          <Suspense
+            fallback={
+              <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
+            }
+          >
+            <HeaderUserMenu />
+          </Suspense>
         </nav>
       </div>
     </header>

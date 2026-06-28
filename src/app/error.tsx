@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Home, RefreshCw, TriangleAlert } from "lucide-react";
 
-import { AppShell } from "@/components/app-shell";
+import { FallbackShell } from "@/components/fallback-shell";
 import { Button } from "@/components/ui/button";
 
 export default function Error({
@@ -20,7 +20,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <AppShell>
+    <FallbackShell>
       <div className="mx-auto max-w-md py-12 text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 text-destructive">
           <TriangleAlert className="h-8 w-8" />
@@ -45,6 +45,6 @@ export default function Error({
           </Button>
         </div>
       </div>
-    </AppShell>
+    </FallbackShell>
   );
 }
