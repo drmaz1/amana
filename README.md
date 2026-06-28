@@ -21,25 +21,30 @@
 
 ## 🚀 التشغيل / Getting started
 
+### أ) وضع العرض — بدون قاعدة بيانات / Demo mode (no database)
+
+أسرع طريقة لتصفّح الموقع كاملاً: **لا تحتاج قاعدة بيانات ولا تسجيل دخول.**
+
 ```bash
-# 1) تثبيت الحزم
 npm install
-
-# 2) إعداد البيئة
-cp .env.example .env
-#    عدّل DATABASE_URL / DIRECT_URL ليشيرا إلى Postgres محلي،
-#    واضبط AUTH_SECRET (openssl rand -hex 32).
-
-# 3) إنشاء قاعدة البيانات وتطبيق الـ migrations + بيانات تجريبية
-npm run db:migrate     # prisma migrate dev (ينشئ/يطبّق الـ migrations)
-npm run db:seed        # بيانات تجريبية
-
-# 4) التشغيل
 npm run dev            # http://localhost:3000
 ```
 
-> يحتاج المشروع إلى **PostgreSQL** يعمل محلياً (أو Neon/Supabase). لا توجد بيانات
-> وهمية بعد الآن — كل الصفحات تقرأ من القاعدة عبر `src/lib/data.ts`.
+بدون `DATABASE_URL` يعمل التطبيق على **بيانات تجريبية في الذاكرة**، وتُعطّل المصادقة
+فتتصفّح كل الصفحات (بما فيها `/driver` و`/admin`) مباشرةً. النماذج (حجز/أمانة/رحلة)
+تُظهر نجاحاً تجريبياً، ويعمل التتبّع على الأرقام التجريبية (مثل `AMN-1001` و`PKG-2001`).
+
+### ب) الوضع الكامل — مع قاعدة بيانات / Full mode (with a database)
+
+```bash
+cp .env.example .env       # اضبط DATABASE_URL / DIRECT_URL و AUTH_SECRET
+npm run db:migrate         # prisma migrate dev
+npm run db:seed            # بيانات تجريبية
+npm run dev
+```
+
+بمجرد ضبط `DATABASE_URL` يتحوّل التطبيق تلقائياً إلى القراءة/الكتابة الحقيقية
+والمصادقة عبر OTP — بدون أي تعديل في الكود.
 
 ### تسجيل الدخول أثناء التطوير / Dev login (OTP)
 
