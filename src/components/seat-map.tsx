@@ -10,6 +10,7 @@ import {
   getSeatLayout,
   vehicleLabel,
   type SeatCategory,
+  type SeatCell,
 } from "@/lib/seats";
 import { cn, formatIQD } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -95,6 +96,21 @@ function Seat({
   );
 }
 
+/**
+ * Place a row's cells onto a fixed `cols`-wide grid so every seat keeps the
+ * same width across rows. A short row gets its gap in the middle (the front
+ * row's console / a back row's aisle) rather than being stretched.
+ */
+function padRow(row: SeatCell[], cols: number): (SeatCell | null)[] {
+  if (row.length >= cols) return row;
+  if (row.length === cols - 1) {
+    return [...row.slice(0, 1), null, ...row.slice(1)];
+  }
+  const out: (SeatCell | null)[] = [...row];
+  while (out.length < cols) out.push(null);
+  return out;
+}
+
 function DriverCell() {
   return (
     <div className="flex h-[4.75rem] w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/40 text-muted-foreground">
@@ -117,6 +133,10 @@ export function SeatMap({ trip }: { trip: Trip }) {
   const layout = React.useMemo(
     () => getSeatLayout(trip.vehicleType, trip.totalSeats),
     [trip.vehicleType, trip.totalSeats],
+  );
+  const cols = React.useMemo(
+    () => Math.max(...layout.map((r) => r.length)),
+    [layout],
   );
 
   function toggle(n: number) {
@@ -172,40 +192,39 @@ export function SeatMap({ trip }: { trip: Trip }) {
           مقدمة {vehicleLabel(trip.vehicleType)}
         </div>
 
-        {layout.map((row, ri) => {
-          const cols = row.length;
-          return (
-            <React.Fragment key={ri}>
-              {ri === 1 && (
-                <div className="my-2 flex items-center gap-2 text-[10px] text-muted-foreground/60">
-                  <span className="h-px flex-1 bg-border" />
-                  الممر
-                  <span className="h-px flex-1 bg-border" />
-                </div>
-              )}
-              {ri > 1 && <div className="h-3" />}
-              <div
-                className="grid gap-2.5"
-                style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-              >
-                {row.map((cell, ci) =>
-                  cell.kind === "driver" ? (
-                    <DriverCell key={`d${ci}`} />
-                  ) : (
-                    <Seat
-                      key={cell.n}
-                      n={cell.n}
-                      price={priceOf(cell.n)}
-                      category={cell.category}
-                      state={stateOf(cell.n)}
-                      onToggle={toggle}
-                    />
-                  ),
-                )}
+        {layout.map((row, ri) => (
+          <React.Fragment key={ri}>
+            {ri === 1 && (
+              <div className="my-2 flex items-center gap-2 text-[10px] text-muted-foreground/60">
+                <span className="h-px flex-1 bg-border" />
+                الممر
+                <span className="h-px flex-1 bg-border" />
               </div>
-            </React.Fragment>
-          );
-        })}
+            )}
+            {ri > 1 && <div className="h-3" />}
+            <div
+              className="grid gap-2.5"
+              style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+            >
+              {padRow(row, cols).map((cell, ci) =>
+                cell === null ? (
+                  <div key={`g${ci}`} aria-hidden="true" />
+                ) : cell.kind === "driver" ? (
+                  <DriverCell key={`d${ci}`} />
+                ) : (
+                  <Seat
+                    key={cell.n}
+                    n={cell.n}
+                    price={priceOf(cell.n)}
+                    category={cell.category}
+                    state={stateOf(cell.n)}
+                    onToggle={toggle}
+                  />
+                ),
+              )}
+            </div>
+          </React.Fragment>
+        ))}
       </div>
 
       {/* selected summary */}

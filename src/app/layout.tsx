@@ -29,6 +29,7 @@ export const metadata: Metadata = {
     "منصة عراقية لحجز مقاعد السفر بين المحافظات وإرسال الأمانات والبريد مع سائقين موثوقين.",
   applicationName: "أمانة",
   appleWebApp: { capable: true, title: "أمانة", statusBarStyle: "default" },
+  icons: { apple: "/apple-icon.png" },
 };
 
 export const viewport: Viewport = {
