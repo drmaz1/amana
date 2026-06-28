@@ -2,6 +2,22 @@
 
 Non-obvious choices made while completing Amana per `CLAUDE.md`. Newest first.
 
+## Hardening (P5)
+
+- **Centralized error logging**: `src/lib/log.ts` `logError(scope, err)` — one
+  greppable `[amana:error] scope — Name: message` line; stack traces only
+  outside production. Every action `catch` now calls it instead of ad-hoc
+  `console.error`; clients still get a typed `ActionResult` with a safe message
+  (no stack traces ever returned).
+- **Booking rate-limit**: `createBooking` caps a passenger to 6 active
+  (PENDING/CONFIRMED) bookings per hour (per `passengerId`, which for guests is
+  the phone-keyed account), returning a typed `RATE_LIMIT` error. Mirrors the
+  existing OTP throttle.
+- **A11y/RTL**: skip-to-content link in `AppShell` (`#main-content`), bottom nav
+  marked up as a labeled `nav` with `aria-current="page"` on the active item +
+  focus-visible rings and `aria-hidden` icons. Seat-map seats were already
+  keyboard-operable `<button>`s with `aria-label`/`aria-pressed`/focus rings.
+
 ## Ratings & reviews
 
 - **`Review` model** (migration `20260628135806_add_reviews`): one review per

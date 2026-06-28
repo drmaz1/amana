@@ -1,6 +1,7 @@
 "use server";
 
 import { isDemoMode } from "@/lib/demo";
+import { logError } from "@/lib/log";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { roleAtLeast } from "@/lib/session-token";
@@ -66,7 +67,7 @@ export async function promoteUser(
     await prisma.user.update({ where: { id: userId }, data: { role } });
     return { ok: true };
   } catch (e) {
-    console.error("promoteUser failed:", e);
+    logError("promoteUser", e);
     return actionError("تعذّر تحديث الدور", "UNKNOWN");
   }
 }
@@ -108,7 +109,7 @@ export async function assignParcelToTrip(
     await prisma.parcel.update({ where: { id: parcelId }, data: { tripId } });
     return { ok: true };
   } catch (e) {
-    console.error("assignParcelToTrip failed:", e);
+    logError("assignParcelToTrip", e);
     return actionError("تعذّر ربط الأمانة بالرحلة", "UNKNOWN");
   }
 }

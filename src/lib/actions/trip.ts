@@ -1,6 +1,7 @@
 "use server";
 
 import { isDemoMode } from "@/lib/demo";
+import { logError } from "@/lib/log";
 import { prisma } from "@/lib/prisma";
 import { generateReference } from "@/lib/reference";
 import { getSession } from "@/lib/session";
@@ -78,7 +79,7 @@ export async function createTrip(
     // revalidatePath is needed.
     return { ok: true, tripId: trip.id };
   } catch (e) {
-    console.error("createTrip failed:", e);
+    logError("createTrip", e);
     return actionError("حدث خطأ أثناء إضافة الرحلة. حاول مرة أخرى.", "UNKNOWN");
   }
 }
@@ -165,7 +166,7 @@ export async function updateTrip(
     });
     return { ok: true, tripId };
   } catch (e) {
-    console.error("updateTrip failed:", e);
+    logError("updateTrip", e);
     return actionError("تعذّر حفظ تعديلات الرحلة. حاول مرة أخرى.", "UNKNOWN");
   }
 }

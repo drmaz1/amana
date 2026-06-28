@@ -1,6 +1,7 @@
 "use server";
 
 import { isDemoMode } from "@/lib/demo";
+import { logError } from "@/lib/log";
 import { prisma } from "@/lib/prisma";
 import { getSession, setSessionCookie } from "@/lib/session";
 import { profileUpdateSchema, type ProfileUpdateInput } from "@/lib/validation";
@@ -32,7 +33,7 @@ export async function updateProfile(
     await setSessionCookie({ userId: session.userId, role: session.role, name });
     return { ok: true, name };
   } catch (e) {
-    console.error("updateProfile failed:", e);
+    logError("updateProfile", e);
     return actionError("تعذّر حفظ الاسم. حاول مرة أخرى.", "UNKNOWN");
   }
 }

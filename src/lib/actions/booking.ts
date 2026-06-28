@@ -2,10 +2,14 @@
 
 import { createBookingRecord, SeatTakenError } from "@/lib/booking";
 import { demoReference, isDemoMode } from "@/lib/demo";
+import { logError } from "@/lib/log";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { bookingSchema, type BookingInput } from "@/lib/validation";
 import { actionError, type ActionResult } from "./types";
+
+const BOOKING_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MAX_BOOKINGS_PER_WINDOW = 6;
 
 /**
  * Create a seat booking. Validates input, prices it from the trip (never trusts
@@ -61,6 +65,21 @@ export async function createBooking(
     passengerId = passenger.id;
   }
 
+  // Throttle: cap a passenger's active bookings per hour to curb abuse/spam.
+  const recentCount = await prisma.booking.count({
+    where: {
+      passengerId,
+      status: { in: ["PENDING", "CONFIRMED"] },
+      createdAt: { gt: new Date(Date.now() - BOOKING_WINDOW_MS) },
+    },
+  });
+  if (recentCount >= MAX_BOOKINGS_PER_WINDOW) {
+    return actionError(
+      "لقد أنشأت حجوزات كثيرة مؤخراً. حاول مرة أخرى بعد قليل.",
+      "RATE_LIMIT",
+    );
+  }
+
   try {
     const booking = await createBookingRecord({
       tripId,
@@ -81,7 +100,7 @@ export async function createBooking(
         "SEAT_TAKEN",
       );
     }
-    console.error("createBooking failed:", e);
+    logError("createBooking", e);
     return actionError(
       "حدث خطأ غير متوقع أثناء الحجز. حاول مرة أخرى.",
       "UNKNOWN",

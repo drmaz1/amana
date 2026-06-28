@@ -1,6 +1,7 @@
 "use server";
 
 import { isDemoMode } from "@/lib/demo";
+import { logError } from "@/lib/log";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { reviewSchema, type ReviewInput } from "@/lib/validation";
@@ -75,7 +76,7 @@ export async function createReview(
     });
     return { ok: true };
   } catch (e) {
-    console.error("createReview failed:", e);
+    logError("createReview", e);
     return actionError("تعذّر حفظ التقييم. حاول مرة أخرى.", "UNKNOWN");
   }
 }

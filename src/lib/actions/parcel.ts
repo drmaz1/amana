@@ -3,6 +3,7 @@
 import { Prisma } from "@prisma/client";
 
 import { demoReference, isDemoMode } from "@/lib/demo";
+import { logError } from "@/lib/log";
 import { prisma } from "@/lib/prisma";
 import { estimateParcelPrice } from "@/lib/pricing";
 import { generateReference } from "@/lib/reference";
@@ -71,7 +72,7 @@ export async function createParcel(
       ) {
         continue; // reference collision — retry with a fresh code
       }
-      console.error("createParcel failed:", e);
+      logError("createParcel", e);
       return actionError("حدث خطأ أثناء إرسال الطلب. حاول مرة أخرى.", "UNKNOWN");
     }
   }

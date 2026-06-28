@@ -1,6 +1,7 @@
 "use server";
 
 import { isDemoMode } from "@/lib/demo";
+import { logError } from "@/lib/log";
 import { prisma } from "@/lib/prisma";
 import { seatsForVehicle } from "@/lib/seats";
 import { getSession } from "@/lib/session";
@@ -61,7 +62,7 @@ export async function createVehicle(
     if (isUniquePlate(e)) {
       return actionError("رقم اللوحة مستخدم بالفعل", "DUPLICATE");
     }
-    console.error("createVehicle failed:", e);
+    logError("createVehicle", e);
     return actionError("تعذّر حفظ المركبة. حاول مرة أخرى.", "UNKNOWN");
   }
 }
@@ -102,7 +103,7 @@ export async function updateVehicle(
     if (isUniquePlate(e)) {
       return actionError("رقم اللوحة مستخدم بالفعل", "DUPLICATE");
     }
-    console.error("updateVehicle failed:", e);
+    logError("updateVehicle", e);
     return actionError("تعذّر حفظ المركبة. حاول مرة أخرى.", "UNKNOWN");
   }
 }

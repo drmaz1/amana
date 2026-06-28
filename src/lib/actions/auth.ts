@@ -2,6 +2,7 @@
 
 import { createHash, randomInt } from "node:crypto";
 
+import { logError } from "@/lib/log";
 import { toLocalPhone } from "@/lib/phone";
 import { prisma } from "@/lib/prisma";
 import { clearSessionCookie, setSessionCookie } from "@/lib/session";
@@ -64,7 +65,7 @@ export async function requestOtp(
   try {
     await getSmsProvider().send(phone, `رمز الدخول إلى أمانة: ${code}`);
   } catch (e) {
-    console.error("SMS send failed:", e);
+    logError("requestOtp.sms", e);
     return actionError("تعذّر إرسال رمز التحقق. حاول مرة أخرى.", "SMS_FAILED");
   }
 
