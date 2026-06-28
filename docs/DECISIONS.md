@@ -2,7 +2,22 @@
 
 Non-obvious choices made while completing Amana per `CLAUDE.md`. Newest first.
 
-## Account, settings, profile & auth-aware header
+## Admin depth — users, roles, parcel→trip assignment
+
+- **Users management page** (`/admin/users`): server-side paginated + filtered
+  (`getUsers({q, role, page, pageSize})` in `data.ts`; demo paginates the mock
+  `USERS` array, DB uses `skip`/`take` + a `Prisma.UserWhereInput` with a
+  case-insensitive name search + phone `contains`). A reusable
+  `AdminPagination` (link-based, preserves query params) and `AdminUserFilters`
+  (search + role) drive it. `promoteUser(userId, role)` (admin-guarded, demo
+  optimistic) changes a user's role from a small `AdminRoleControl` select that
+  mirrors `AdminStatusControl`.
+- **Assign parcel → trip**: `assignParcelToTrip(parcelId, tripId|null)` validates
+  (DB mode) that the chosen trip accepts parcels and runs the parcel's exact
+  route before linking. The admin parcels table gained a "الرحلة" column with an
+  `AssignParcelControl` select whose candidates are filtered from the already-
+  loaded trips by route (no extra per-parcel query). Added an optional
+  `tripId` to the `Parcel` view type so the current assignment shows.
 
 - **Header user menu.** The site header now shows who's signed in (avatar +
   name) with a `<details>`-based dropdown (`src/components/user-menu.tsx`, no

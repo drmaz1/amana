@@ -1,10 +1,13 @@
-import { Car, Package, Ticket, Wallet } from "lucide-react";
+import Link from "next/link";
+import { Car, Package, Ticket, UsersRound, Wallet } from "lucide-react";
 
 import { getAllBookings, getAllParcels, getAllTrips } from "@/lib/data";
 import { governorateName } from "@/lib/governorates";
 import { formatArabicDate, formatIQD, formatTime } from "@/lib/utils";
 import { AppShell } from "@/components/app-shell";
 import { AdminStatusControl } from "@/components/admin-status-control";
+import { AssignParcelControl } from "@/components/assign-parcel-control";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 const arNum = (n: number) => new Intl.NumberFormat("ar-IQ").format(n);
@@ -22,11 +25,19 @@ export default async function AdminPage() {
 
   return (
     <AppShell>
-      <div className="mb-4">
-        <h1 className="font-display text-xl font-bold">لوحة الإدارة</h1>
-        <p className="text-sm text-muted-foreground">
-          نظرة عامة على الرحلات والحجوزات والأمانات في المنصة.
-        </p>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-xl font-bold">لوحة الإدارة</h1>
+          <p className="text-sm text-muted-foreground">
+            نظرة عامة على الرحلات والحجوزات والأمانات في المنصة.
+          </p>
+        </div>
+        <Button asChild variant="outline" size="sm" className="shrink-0">
+          <Link href="/admin/users">
+            <UsersRound className="h-4 w-4" />
+            المستخدمون
+          </Link>
+        </Button>
       </div>
 
       {/* stats */}
@@ -111,27 +122,56 @@ export default async function AdminPage() {
 
       {/* parcels table */}
       <Section title="الأمانات">
-        <Table head={["المسار", "المُرسِل ← المُستلِم", "المحتوى", "السعر", "الحالة"]}>
-          {parcels.map((p) => (
-            <tr key={p.id} className="border-t">
-              <Td>
-                <RouteText from={p.originId} to={p.destinationId} />
-              </Td>
-              <Td className="whitespace-nowrap">
-                {p.senderName} <span className="opacity-50">←</span>{" "}
-                {p.receiverName}
-              </Td>
-              <Td className="max-w-[12rem] truncate text-muted-foreground">
-                {p.description}
-              </Td>
-              <Td className="nums whitespace-nowrap font-medium text-primary">
-                {formatIQD(p.price)}
-              </Td>
-              <Td>
-                <AdminStatusControl kind="parcel" id={p.id} status={p.status} />
-              </Td>
-            </tr>
-          ))}
+        <Table
+          head={[
+            "المسار",
+            "المُرسِل ← المُستلِم",
+            "المحتوى",
+            "السعر",
+            "الرحلة",
+            "الحالة",
+          ]}
+        >
+          {parcels.map((p) => {
+            const candidates = trips
+              .filter(
+                (t) =>
+                  t.acceptsParcels &&
+                  t.originId === p.originId &&
+                  t.destinationId === p.destinationId,
+              )
+              .map((t) => ({
+                id: t.id,
+                label: `${t.driver.name} · ${formatTime(t.departureAt)}`,
+              }));
+            return (
+              <tr key={p.id} className="border-t">
+                <Td>
+                  <RouteText from={p.originId} to={p.destinationId} />
+                </Td>
+                <Td className="whitespace-nowrap">
+                  {p.senderName} <span className="opacity-50">←</span>{" "}
+                  {p.receiverName}
+                </Td>
+                <Td className="max-w-[12rem] truncate text-muted-foreground">
+                  {p.description}
+                </Td>
+                <Td className="nums whitespace-nowrap font-medium text-primary">
+                  {formatIQD(p.price)}
+                </Td>
+                <Td>
+                  <AssignParcelControl
+                    parcelId={p.id}
+                    currentTripId={p.tripId ?? null}
+                    candidates={candidates}
+                  />
+                </Td>
+                <Td>
+                  <AdminStatusControl kind="parcel" id={p.id} status={p.status} />
+                </Td>
+              </tr>
+            );
+          })}
         </Table>
       </Section>
     </AppShell>

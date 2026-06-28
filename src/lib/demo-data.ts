@@ -57,6 +57,36 @@ const PARCELS: (Parcel & { reference: string })[] = [
   { id: "p3", reference: "PKG-2003", originId: "najaf", destinationId: "baghdad", senderName: "كرار جبار", receiverName: "أحمد سالم", receiverPhone: "07703334455", description: "هدية / علبة صغيرة", price: 7000, status: "DELIVERED", createdAt: at(-1, 14, 0) },
 ];
 
+export type DemoUser = {
+  id: string;
+  name: string;
+  phone: string;
+  role: "PASSENGER" | "DRIVER" | "ADMIN";
+  rating: number | null;
+  tripsCount: number;
+  createdAt: string;
+};
+
+const USERS: DemoUser[] = [
+  { id: "u-admin", name: "إدارة أمانة", phone: "07900000000", role: "ADMIN", rating: null, tripsCount: 0, createdAt: at(-120, 9) },
+  ...DRIVERS.map((d, i) => ({
+    id: d.id,
+    name: d.name,
+    phone: d.phone,
+    role: "DRIVER" as const,
+    rating: d.rating,
+    tripsCount: d.tripsCount,
+    createdAt: at(-90 + i * 7, 10),
+  })),
+  { id: "u1", name: "مصطفى عبد الله", phone: "07801112233", role: "PASSENGER", rating: null, tripsCount: 0, createdAt: at(-40, 11) },
+  { id: "u2", name: "زينب حسن", phone: "07812223344", role: "PASSENGER", rating: null, tripsCount: 0, createdAt: at(-33, 12) },
+  { id: "u3", name: "آرام رشيد", phone: "07503334455", role: "PASSENGER", rating: null, tripsCount: 0, createdAt: at(-25, 13) },
+  { id: "u4", name: "علي كريم", phone: "07704445566", role: "PASSENGER", rating: null, tripsCount: 0, createdAt: at(-18, 14) },
+  { id: "u5", name: "نور محمد", phone: "07715556677", role: "PASSENGER", rating: null, tripsCount: 0, createdAt: at(-12, 15) },
+  { id: "u6", name: "كرار جبار", phone: "07726667788", role: "PASSENGER", rating: null, tripsCount: 0, createdAt: at(-6, 16) },
+  { id: "u7", name: "دلير عمر", phone: "07507778899", role: "PASSENGER", rating: null, tripsCount: 0, createdAt: at(-2, 17) },
+];
+
 const DEMO_DRIVER_ID = "d1";
 
 export const demoData = {
@@ -80,6 +110,31 @@ export const demoData = {
   },
   allBookings: (): (Booking & { reference: string })[] => BOOKINGS,
   allParcels: (): (Parcel & { reference: string })[] => PARCELS,
+  users: ({
+    q,
+    role,
+    page,
+    pageSize,
+  }: {
+    q?: string;
+    role?: DemoUser["role"];
+    page: number;
+    pageSize: number;
+  }): { rows: DemoUser[]; total: number } => {
+    let rows = USERS;
+    if (role) rows = rows.filter((u) => u.role === role);
+    if (q) {
+      const needle = q.trim().toLowerCase();
+      rows = rows.filter(
+        (u) =>
+          u.name.toLowerCase().includes(needle) || u.phone.includes(needle),
+      );
+    }
+    rows = [...rows].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    const total = rows.length;
+    const start = (page - 1) * pageSize;
+    return { rows: rows.slice(start, start + pageSize), total };
+  },
   popularRoutes: () => {
     const map = new Map<string, { fromPrice: number; count: number }>();
     for (const t of TRIPS) {

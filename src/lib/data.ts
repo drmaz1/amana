@@ -1,4 +1,5 @@
 import { unstable_noStore as noStore } from "next/cache";
+import { Prisma } from "@prisma/client";
 
 import { demoData } from "@/lib/demo-data";
 import { isDemoMode } from "@/lib/demo";
@@ -106,6 +107,7 @@ type ParcelRow = {
   description: string;
   price: number;
   status: Parcel["status"];
+  tripId: string | null;
   createdAt: Date;
 };
 
@@ -120,6 +122,7 @@ function toParcel(p: ParcelRow): Parcel {
     description: p.description,
     price: p.price,
     status: p.status,
+    tripId: p.tripId,
     createdAt: p.createdAt.toISOString(),
   };
 }
@@ -231,6 +234,72 @@ export async function getAllParcels(): Promise<Parcel[]> {
     orderBy: { createdAt: "asc" },
   });
   return parcels.map(toParcel);
+}
+
+export type AdminUser = {
+  id: string;
+  name: string;
+  phone: string;
+  role: Role;
+  rating: number | null;
+  tripsCount: number;
+  createdAt: string;
+};
+
+/** Server-side paginated + filtered user list for the admin users page. */
+export async function getUsers(opts: {
+  q?: string;
+  role?: Role;
+  page?: number;
+  pageSize?: number;
+}): Promise<{ rows: AdminUser[]; total: number }> {
+  noStore();
+  const page = Math.max(1, opts.page ?? 1);
+  const pageSize = opts.pageSize ?? 10;
+  if (isDemoMode()) {
+    return demoData.users({ q: opts.q, role: opts.role, page, pageSize });
+  }
+  const where: Prisma.UserWhereInput = {
+    ...(opts.role ? { role: opts.role } : {}),
+    ...(opts.q
+      ? {
+          OR: [
+            { name: { contains: opts.q, mode: "insensitive" } },
+            { phone: { contains: opts.q } },
+          ],
+        }
+      : {}),
+  };
+  const [rows, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        role: true,
+        rating: true,
+        tripsCount: true,
+        createdAt: true,
+      },
+    }),
+    prisma.user.count({ where }),
+  ]);
+  return {
+    rows: rows.map((u) => ({
+      id: u.id,
+      name: u.name,
+      phone: u.phone,
+      role: u.role,
+      rating: u.rating,
+      tripsCount: u.tripsCount,
+      createdAt: u.createdAt.toISOString(),
+    })),
+    total,
+  };
 }
 
 export type UserProfile = {

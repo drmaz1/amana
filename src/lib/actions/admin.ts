@@ -50,3 +50,65 @@ export async function setParcelStatus(
   await prisma.parcel.update({ where: { id }, data: { status } });
   return { ok: true };
 }
+
+const ROLES = ["PASSENGER", "DRIVER", "ADMIN"] as const;
+
+/** Change a user's role (PASSENGER → DRIVER → ADMIN, or back). Admin only. */
+export async function promoteUser(
+  userId: string,
+  role: (typeof ROLES)[number],
+): Promise<ActionResult> {
+  const err = await adminGuard();
+  if (err) return err;
+  if (!ROLES.includes(role)) return actionError("دور غير صالح", "VALIDATION");
+  if (isDemoMode()) return { ok: true };
+  try {
+    await prisma.user.update({ where: { id: userId }, data: { role } });
+    return { ok: true };
+  } catch (e) {
+    console.error("promoteUser failed:", e);
+    return actionError("تعذّر تحديث الدور", "UNKNOWN");
+  }
+}
+
+/** Assign a parcel to a trip (or unassign with `null`). Admin only. */
+export async function assignParcelToTrip(
+  parcelId: string,
+  tripId: string | null,
+): Promise<ActionResult> {
+  const err = await adminGuard();
+  if (err) return err;
+  if (isDemoMode()) return { ok: true };
+  try {
+    if (tripId) {
+      // Only allow trips that accept parcels and run the parcel's exact route.
+      const [parcel, trip] = await Promise.all([
+        prisma.parcel.findUnique({
+          where: { id: parcelId },
+          select: { originId: true, destinationId: true },
+        }),
+        prisma.trip.findUnique({
+          where: { id: tripId },
+          select: {
+            originId: true,
+            destinationId: true,
+            acceptsParcels: true,
+          },
+        }),
+      ]);
+      if (!parcel || !trip) return actionError("غير موجود", "NOT_FOUND");
+      if (
+        !trip.acceptsParcels ||
+        trip.originId !== parcel.originId ||
+        trip.destinationId !== parcel.destinationId
+      ) {
+        return actionError("الرحلة لا تناسب مسار الأمانة", "VALIDATION");
+      }
+    }
+    await prisma.parcel.update({ where: { id: parcelId }, data: { tripId } });
+    return { ok: true };
+  } catch (e) {
+    console.error("assignParcelToTrip failed:", e);
+    return actionError("تعذّر ربط الأمانة بالرحلة", "UNKNOWN");
+  }
+}

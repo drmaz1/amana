@@ -61,4 +61,6 @@ export type Parcel = {
   price: number;
   status: ParcelStatus;
   createdAt: string;
+  /** Trip this parcel is assigned to, if any (admin assignment). */
+  tripId?: string | null;
 };
