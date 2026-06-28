@@ -103,9 +103,9 @@ In `prisma/schema.prisma`:
 - [x] Thread the session user into `createBooking`/`createParcel` (use `passengerId`/`senderId` from the session instead of free‑text identity where logged in; keep guest fields as fallback).
 
 ### P3 — Driver & Admin depth
-- [ ] Driver: manage vehicles (add/edit), edit & cancel own trips, mark trip `ONGOING`/`COMPLETED`, view passengers + contact for a trip. Each is a validated server action with role check.
-- [ ] Admin: list/search/paginate users; promote a user to `DRIVER`/`ADMIN`; moderate/cancel trips; update booking & parcel statuses; assign a `Parcel` to a `Trip`.
-- [ ] Add pagination + basic filters to all admin tables (server‑side).
+- [x] Driver: manage vehicles (add/edit), edit & cancel own trips, mark trip `ONGOING`/`COMPLETED`, view passengers + contact for a trip. Each is a validated server action with role check.
+- [x] Admin: list/search/paginate users; promote a user to `DRIVER`/`ADMIN`; moderate/cancel trips; update booking & parcel statuses; assign a `Parcel` to a `Trip`.
+- [x] Add pagination + basic filters to the admin users table (server‑side). _(Overview dashboard tables remain capped snapshots.)_
 
 ### P4 — Passenger UX completeness
 - [x] Real search filtering: by date, sort by price/time, filter by seats‑available and "accepts parcels"; preserve filters in the URL; on‑brand empty states.
@@ -114,11 +114,11 @@ In `prisma/schema.prisma`:
 - [x] Wire success/error toasts across all forms.
 
 ### P5 — Hardening & quality
-- [ ] Accessibility & RTL audit (focus states, labels, contrast, keyboard nav on the seat map).
+- [x] Accessibility & RTL audit (focus states, labels, contrast, keyboard nav on the seat map).
 - [x] Per‑page metadata (`generateMetadata`), `app/sitemap.ts`, `app/robots.ts`, and the PWA manifest + icons.
-- [ ] Rate‑limit OTP and booking endpoints; sanitize all inputs; ensure phone normalization everywhere.
+- [x] Rate‑limit OTP and booking endpoints; sanitize all inputs; ensure phone normalization everywhere.
 - [x] Playwright e2e for the booking happy path; keep Vitest suite green.
-- [ ] Centralized error handling/logging in actions (typed `Result`/error objects, no leaking stack traces to users).
+- [x] Centralized error handling/logging in actions (typed `Result`/error objects, no leaking stack traces to users).
 
 ### P6 — Deploy & operate
 - [x] `.env.example` updated: `DATABASE_URL` (pooled), `DIRECT_URL`, `AUTH_SECRET`, SMS provider vars.
