@@ -9,7 +9,9 @@ import {
   formatTime,
 } from "@/lib/utils";
 import { AppShell } from "@/components/app-shell";
+import { ReviewForm } from "@/components/review-form";
 import { RouteLine } from "@/components/route-line";
+import { Stars } from "@/components/stars";
 import {
   BookingStatusBadge,
   ParcelStatusBadge,
@@ -85,6 +87,22 @@ export default async function MePage() {
                       {formatIQD(b.totalPrice)}
                     </span>
                   </div>
+
+                  {b.status === "COMPLETED" && (
+                    <div className="mt-3">
+                      {b.myRating ? (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          تقييمك للسائق:
+                          <Stars value={b.myRating} />
+                        </div>
+                      ) : (
+                        <ReviewForm
+                          bookingId={b.bookingId}
+                          driverName={b.driverName}
+                        />
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

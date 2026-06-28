@@ -44,6 +44,7 @@ const TRIPS: Trip[] = [
   { id: "t5", driver: DRIVERS[0], vehicleType: "SEDAN", vehicleModel: "تويوتا كامري 2022", plate: "النجف ٥ هـ ٩٩٨٨", originId: "baghdad", destinationId: "najaf", departureAt: at(0, 10, 30), durationMinutes: 150, ...priced("SEDAN", 15000), bookedSeats: [4], status: "SCHEDULED", acceptsParcels: true, parcelBasePrice: 7000 },
   { id: "t6", driver: DRIVERS[2], vehicleType: "SEDAN", vehicleModel: "كيا K5 2020", plate: "بغداد ٣١ ج ١٢٣٤", originId: "basra", destinationId: "baghdad", departureAt: at(1, 7, 0), durationMinutes: 330, ...priced("SEDAN", 28000), bookedSeats: [2, 3], status: "SCHEDULED", acceptsParcels: true, parcelBasePrice: 10000 },
   { id: "t7", driver: DRIVERS[3], vehicleType: "GMC", vehicleModel: "جمس يوكن 2021", plate: "كربلاء ٧ و ٢٢١١", originId: "karbala", destinationId: "baghdad", departureAt: at(1, 12, 0), durationMinutes: 120, ...priced("GMC", 12000), bookedSeats: [], status: "SCHEDULED", acceptsParcels: true, parcelBasePrice: 6000 },
+  { id: "t8", driver: DRIVERS[0], vehicleType: "SEDAN", vehicleModel: "تويوتا كامري 2022", plate: "النجف ٥ هـ ٩٩٨٨", originId: "baghdad", destinationId: "najaf", departureAt: at(-2, 9, 0), durationMinutes: 150, ...priced("SEDAN", 15000), bookedSeats: [2], status: "COMPLETED", acceptsParcels: true, parcelBasePrice: 7000 },
 ];
 
 const seatTotal = (tripId: string, seats: number[]) => {
@@ -56,6 +57,22 @@ const BOOKINGS: (Booking & { reference: string })[] = [
   { id: "b2", reference: "AMN-1002", tripId: "t1", passengerName: "زينب حسن", passengerPhone: "07812223344", seatNumbers: [3], totalPrice: seatTotal("t1", [3]), status: "CONFIRMED", createdAt: at(-1, 20, 0) },
   { id: "b3", reference: "AMN-1003", tripId: "t4", passengerName: "آرام رشيد", passengerPhone: "07503334455", seatNumbers: [1, 2], totalPrice: seatTotal("t4", [1, 2]), status: "PENDING", createdAt: at(0, 6, 30) },
   { id: "b4", reference: "AMN-1004", tripId: "t5", passengerName: "علي كريم", passengerPhone: "07704445566", seatNumbers: [4], totalPrice: seatTotal("t5", [4]), status: "CONFIRMED", createdAt: at(0, 7, 0) },
+  { id: "b5", reference: "AMN-1005", tripId: "t8", passengerName: "مصطفى عبد الله", passengerPhone: "07801112233", seatNumbers: [2], totalPrice: seatTotal("t8", [2]), status: "COMPLETED", createdAt: at(-2, 8, 0) },
+];
+
+type DemoReview = {
+  id: string;
+  bookingId: string;
+  tripId: string;
+  rating: number;
+  comment: string | null;
+  passengerName: string;
+  createdAt: string;
+};
+
+const REVIEWS: DemoReview[] = [
+  { id: "r1", bookingId: "bx1", tripId: "t1", rating: 5, comment: "سائق محترم وملتزم بالمواعيد، السيارة نظيفة ومريحة.", passengerName: "حسين الطائي", createdAt: at(-5, 12) },
+  { id: "r2", bookingId: "bx2", tripId: "t1", rating: 4, comment: "رحلة مريحة وسعر مناسب.", passengerName: "سارة عمر", createdAt: at(-9, 15) },
 ];
 
 const PARCELS: (Parcel & { reference: string })[] = [
@@ -126,6 +143,12 @@ export const demoData = {
     ),
   allBookings: (): (Booking & { reference: string })[] => BOOKINGS,
   allParcels: (): (Parcel & { reference: string })[] => PARCELS,
+  tripReviews: (tripId: string): DemoReview[] =>
+    REVIEWS.filter((r) => r.tripId === tripId).sort((a, b) =>
+      b.createdAt.localeCompare(a.createdAt),
+    ),
+  reviewForBooking: (bookingId: string): DemoReview | undefined =>
+    REVIEWS.find((r) => r.bookingId === bookingId),
   users: ({
     q,
     role,

@@ -2,6 +2,25 @@
 
 Non-obvious choices made while completing Amana per `CLAUDE.md`. Newest first.
 
+## Ratings & reviews
+
+- **`Review` model** (migration `20260628135806_add_reviews`): one review per
+  booking (`bookingId @unique`), linked to trip/driver/passenger. `createReview`
+  lets the passenger who owns a **COMPLETED** booking rate the driver (1–5 +
+  optional comment), inside a transaction that recomputes and stores the
+  driver's average `rating`. **`tripsCount` is intentionally left untouched** —
+  the seed sets large historical counts and recomputing from completed-trip rows
+  would degrade the display; rating is the value that becomes live.
+- **Prisma engine note**: `prisma generate` fails on the sandbox proxy
+  (ECONNRESET on the engine fetch), but the migration applies fine. Regenerate
+  the client offline by pointing at the cached engines:
+  `PRISMA_QUERY_ENGINE_LIBRARY` + `PRISMA_SCHEMA_ENGINE_BINARY` +
+  `PRISMA_ENGINES_MIRROR=file://…/node_modules/@prisma/engines`.
+- **UI**: `/me` shows a star + comment `ReviewForm` on completed bookings (or
+  the submitted rating once left); trip details list recent reviews. Read-only
+  `Stars` component shared by both. Demo seeds a completed trip/booking + sample
+  reviews so the flow is browsable with no DB.
+
 ## Driver depth — vehicles, trip editing, passenger contact
 
 - **Passenger contact**: `getDriverBookings` now selects the passenger phone

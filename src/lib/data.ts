@@ -351,6 +351,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
 }
 
 export type MyBooking = {
+  bookingId: string;
   reference: string;
   status: Booking["status"];
   seatNumbers: number[];
@@ -358,7 +359,43 @@ export type MyBooking = {
   originId: string;
   destinationId: string;
   departureAt: string;
+  driverName: string;
+  /** This passenger's rating for the trip, if they've left one. */
+  myRating: number | null;
 };
+
+export type TripReview = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  passengerName: string;
+  createdAt: string;
+};
+
+/** Recent reviews for a trip (shown on the trip details page). */
+export async function getTripReviews(tripId: string): Promise<TripReview[]> {
+  noStore();
+  if (isDemoMode()) return demoData.tripReviews(tripId);
+  const rows = await prisma.review.findMany({
+    where: { tripId },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      createdAt: true,
+      passenger: { select: { name: true } },
+    },
+  });
+  return rows.map((r) => ({
+    id: r.id,
+    rating: r.rating,
+    comment: r.comment,
+    passengerName: r.passenger.name,
+    createdAt: r.createdAt.toISOString(),
+  }));
+}
 
 export type MyParcel = {
   reference: string;
@@ -376,6 +413,7 @@ export async function getMyBookings(userId: string): Promise<MyBooking[]> {
     return demoData.allBookings().map((b) => {
       const t = demoData.trip(b.tripId);
       return {
+        bookingId: b.id,
         reference: b.reference,
         status: b.status,
         seatNumbers: b.seatNumbers,
@@ -383,17 +421,28 @@ export async function getMyBookings(userId: string): Promise<MyBooking[]> {
         originId: t?.originId ?? "",
         destinationId: t?.destinationId ?? "",
         departureAt: t?.departureAt ?? b.createdAt,
+        driverName: t?.driver.name ?? "",
+        myRating: demoData.reviewForBooking(b.id)?.rating ?? null,
       };
     });
   }
   const rows = await prisma.booking.findMany({
     where: { passengerId: userId },
     include: {
-      trip: { select: { originId: true, destinationId: true, departureAt: true } },
+      trip: {
+        select: {
+          originId: true,
+          destinationId: true,
+          departureAt: true,
+          driver: { select: { name: true } },
+        },
+      },
+      review: { select: { rating: true } },
     },
     orderBy: { createdAt: "desc" },
   });
   return rows.map((b) => ({
+    bookingId: b.id,
     reference: b.reference,
     status: b.status,
     seatNumbers: b.seatNumbers,
@@ -401,6 +450,8 @@ export async function getMyBookings(userId: string): Promise<MyBooking[]> {
     originId: b.trip.originId,
     destinationId: b.trip.destinationId,
     departureAt: b.trip.departureAt.toISOString(),
+    driverName: b.trip.driver.name,
+    myRating: b.review?.rating ?? null,
   }));
 }
 

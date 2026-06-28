@@ -63,6 +63,8 @@ model User {
   driverTrips Trip[]    @relation("DriverTrips")
   bookings    Booking[] @relation("PassengerBookings")
   parcelsSent Parcel[]  @relation("ParcelSender")
+  reviewsReceived Review[] @relation("DriverReviews")
+  reviewsWritten  Review[] @relation("PassengerReviews")
 
   @@index([role])
 }
@@ -102,6 +104,7 @@ model Trip {
   bookings       Booking[]
   bookingSeats   BookingSeat[]
   parcels        Parcel[]
+  reviews        Review[]
 
   @@index([originId, destinationId, departureAt])
   @@index([driverId])
@@ -121,9 +124,30 @@ model Booking {
   createdAt   DateTime      @default(now())
   // relations
   bookingSeats BookingSeat[]
+  review       Review?
 
   @@index([tripId])
   @@index([passengerId])
+}
+
+/// A passenger's rating of the driver for a completed booking. One per booking
+/// (bookingId @unique). Creating one recomputes the driver's average `rating`.
+model Review {
+  id          String   @id @default(cuid())
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId   String   @unique
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId      String
+  driver      User     @relation("DriverReviews", fields: [driverId], references: [id])
+  driverId    String
+  passenger   User     @relation("PassengerReviews", fields: [passengerId], references: [id])
+  passengerId String
+  rating      Int // 1..5
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  @@index([driverId])
+  @@index([tripId])
 }
 
 /// One row per held seat on a trip. The DB-level @@unique([tripId, seatNumber])

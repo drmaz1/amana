@@ -31,6 +31,7 @@ async function main() {
 
   // Clean slate (respect FK order).
   await prisma.otpCode.deleteMany();
+  await prisma.review.deleteMany();
   await prisma.bookingSeat.deleteMany();
   await prisma.parcel.deleteMany();
   await prisma.booking.deleteMany();
@@ -176,13 +177,23 @@ async function main() {
     },
   });
 
+  // A past, completed trip so reviews + the "rate the driver" flow have data.
+  const p8 = priced("SEDAN", 15000);
+  const t8 = await prisma.trip.create({
+    data: {
+      driverId: d1.id, vehicleId: v1.id, originId: "baghdad", destinationId: "najaf",
+      departureAt: at(-2, 9, 0), durationMinutes: 150, ...p8, status: "COMPLETED",
+      acceptsParcels: true, parcelBasePrice: 7000,
+    },
+  });
+
   // ---------- Bookings (+ held seats); totals from per-seat prices ----------
   const book = (
     tripId: string,
     passengerId: string,
     seats: number[],
     seatPrices: number[],
-    status: "CONFIRMED" | "PENDING",
+    status: "CONFIRMED" | "PENDING" | "COMPLETED",
   ) =>
     prisma.booking.create({
       data: {
@@ -200,6 +211,20 @@ async function main() {
   await book(t1.id, zainab.id, [3], p1.seatPrices, "CONFIRMED");
   await book(t4.id, aram.id, [1, 2], p4.seatPrices, "PENDING");
   await book(t5.id, ali.id, [4], p5.seatPrices, "CONFIRMED");
+
+  // Completed bookings on t8: one already reviewed, one left to rate.
+  const doneReviewed = await book(t8.id, zainab.id, [1], p8.seatPrices, "COMPLETED");
+  await book(t8.id, mustafa.id, [2], p8.seatPrices, "COMPLETED");
+  await prisma.review.create({
+    data: {
+      bookingId: doneReviewed.id,
+      tripId: t8.id,
+      driverId: d1.id,
+      passengerId: zainab.id,
+      rating: 5,
+      comment: "سائق محترم وملتزم بالمواعيد، السيارة نظيفة ومريحة.",
+    },
+  });
 
   // ---------- Parcels ----------
   await prisma.parcel.create({

@@ -11,7 +11,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { getTrip } from "@/lib/data";
+import { getTrip, getTripReviews } from "@/lib/data";
 import { governorateName } from "@/lib/governorates";
 import { vehicleLabel } from "@/lib/seats";
 import {
@@ -22,6 +22,7 @@ import {
 } from "@/lib/utils";
 import { AppShell } from "@/components/app-shell";
 import { RouteLine } from "@/components/route-line";
+import { Stars } from "@/components/stars";
 import { TripStatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,6 +51,7 @@ export default async function TripDetailsPage({
   const trip = await getTrip(params.id);
   if (!trip) notFound();
 
+  const reviews = await getTripReviews(params.id);
   const available = trip.totalSeats - trip.bookedSeats.length;
   const soldOut = available <= 0;
 
@@ -155,6 +157,36 @@ export default async function TripDetailsPage({
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent-foreground" />
           <p className="text-accent-foreground">{trip.notes}</p>
         </div>
+      )}
+
+      {reviews.length > 0 && (
+        <section className="mt-6">
+          <h2 className="mb-2 font-display text-base font-bold">
+            آراء الركّاب
+          </h2>
+          <div className="grid gap-2">
+            {reviews.map((r) => (
+              <Card key={r.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-semibold">
+                      {r.passengerName}
+                    </span>
+                    <Stars value={r.rating} />
+                  </div>
+                  {r.comment && (
+                    <p className="mt-1.5 text-sm text-muted-foreground">
+                      {r.comment}
+                    </p>
+                  )}
+                  <p className="mt-1 text-[11px] text-muted-foreground nums">
+                    {formatArabicDate(r.createdAt)}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* sticky booking bar */}
