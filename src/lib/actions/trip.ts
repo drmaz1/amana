@@ -83,6 +83,93 @@ export async function createTrip(
   }
 }
 
+/**
+ * Edit an existing trip. Only the owning driver (or an admin) may edit, and
+ * only while the trip is still `SCHEDULED`. Resolves the vehicle the same way
+ * `createTrip` does (find-or-create by type+model) so shared vehicles are never
+ * mutated. Refuses to shrink the cabin below an already-booked seat.
+ */
+export async function updateTrip(
+  tripId: string,
+  input: TripInput,
+): Promise<ActionResult<{ tripId: string }>> {
+  const session = await requireDriver();
+  if ("ok" in session) return session;
+
+  const parsed = tripSchema.safeParse(input);
+  if (!parsed.success) {
+    return actionError(
+      parsed.error.issues[0]?.message ?? "بيانات غير صالحة",
+      "VALIDATION",
+    );
+  }
+  const d = parsed.data;
+  const driverId = session.userId;
+
+  if (isDemoMode()) return { ok: true, tripId };
+
+  try {
+    const trip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      select: {
+        driverId: true,
+        status: true,
+        bookingSeats: { select: { seatNumber: true } },
+      },
+    });
+    if (!trip) return actionError("الرحلة غير موجودة", "NOT_FOUND");
+    if (trip.driverId !== session.userId && session.role !== "ADMIN") {
+      return actionError("لا تملك صلاحية تعديل هذه الرحلة", "FORBIDDEN");
+    }
+    if (trip.status !== "SCHEDULED") {
+      return actionError("لا يمكن تعديل رحلة غير مجدولة", "VALIDATION");
+    }
+    const maxBooked = trip.bookingSeats.reduce(
+      (m, s) => Math.max(m, s.seatNumber),
+      0,
+    );
+    if (d.seatPrices.length < maxBooked) {
+      return actionError("عدد المقاعد أقل من مقعد محجوز بالفعل", "VALIDATION");
+    }
+
+    const vehicle =
+      (await prisma.vehicle.findFirst({
+        where: { driverId, type: d.vehicleType, model: d.vehicleModel },
+        select: { id: true },
+      })) ??
+      (await prisma.vehicle.create({
+        data: {
+          driverId,
+          type: d.vehicleType,
+          model: d.vehicleModel,
+          plate: d.plate?.trim() || generateReference("VH"),
+          seats: d.seatPrices.length,
+        },
+        select: { id: true },
+      }));
+
+    await prisma.trip.update({
+      where: { id: tripId },
+      data: {
+        vehicleId: vehicle.id,
+        originId: d.originId,
+        destinationId: d.destinationId,
+        departureAt: d.departureAt,
+        durationMinutes: d.durationMinutes,
+        seatPrices: d.seatPrices,
+        pricePerSeat: Math.min(...d.seatPrices),
+        totalSeats: d.seatPrices.length,
+        acceptsParcels: d.acceptsParcels,
+        parcelBasePrice: d.acceptsParcels ? d.parcelBasePrice ?? null : null,
+      },
+    });
+    return { ok: true, tripId };
+  } catch (e) {
+    console.error("updateTrip failed:", e);
+    return actionError("تعذّر حفظ تعديلات الرحلة. حاول مرة أخرى.", "UNKNOWN");
+  }
+}
+
 const TRIP_STATUSES = [
   "SCHEDULED",
   "ONGOING",

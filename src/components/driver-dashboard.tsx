@@ -9,6 +9,7 @@ import {
   Clock,
   Loader2,
   Package,
+  Pencil,
   Phone,
   Plus,
   Users,
@@ -17,7 +18,12 @@ import {
 import { toast } from "sonner";
 
 import type { Booking, Trip, VehicleType } from "@/types";
-import { cancelTrip, createTrip, setTripStatus } from "@/lib/actions/trip";
+import {
+  cancelTrip,
+  createTrip,
+  setTripStatus,
+  updateTrip,
+} from "@/lib/actions/trip";
 import { GOVERNORATES } from "@/lib/governorates";
 import { toE164, toLocalPhone } from "@/lib/phone";
 import {
@@ -89,6 +95,7 @@ export function DriverDashboard({
 }) {
   const router = useRouter();
   const [showForm, setShowForm] = React.useState(false);
+  const [editing, setEditing] = React.useState<Trip | null>(null);
   const [justAdded, setJustAdded] = React.useState(false);
 
   // Server data is the source of truth; a created trip arrives via router.refresh().
@@ -102,11 +109,21 @@ export function DriverDashboard({
 
   const seatsBooked = trips.reduce((sum, t) => sum + t.bookedSeats.length, 0);
 
-  function handleAdded() {
+  function handleDone() {
+    const wasCreate = !editing;
     setShowForm(false);
-    setJustAdded(true);
+    setEditing(null);
     router.refresh();
-    setTimeout(() => setJustAdded(false), 3500);
+    if (wasCreate) {
+      setJustAdded(true);
+      setTimeout(() => setJustAdded(false), 3500);
+    }
+  }
+
+  function startEdit(trip: Trip) {
+    setShowForm(false);
+    setEditing(trip);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
@@ -152,10 +169,15 @@ export function DriverDashboard({
 
         {/* trips tab */}
         <TabsContent value="trips">
-          {showForm ? (
-            <AddTripForm
-              onAdded={handleAdded}
-              onCancel={() => setShowForm(false)}
+          {showForm || editing ? (
+            <TripForm
+              key={editing?.id ?? "new"}
+              trip={editing ?? undefined}
+              onDone={handleDone}
+              onCancel={() => {
+                setShowForm(false);
+                setEditing(null);
+              }}
             />
           ) : (
             <Button
@@ -172,7 +194,7 @@ export function DriverDashboard({
             {trips.map((t) => (
               <div key={t.id} className="grid gap-2">
                 <TripCard trip={t} />
-                <DriverTripControls trip={t} />
+                <DriverTripControls trip={t} onEdit={() => startEdit(t)} />
               </div>
             ))}
             {trips.length === 0 && (
@@ -255,7 +277,13 @@ export function DriverDashboard({
 }
 
 /** Per-trip status controls shown under each card on the driver's dashboard. */
-function DriverTripControls({ trip }: { trip: Trip }) {
+function DriverTripControls({
+  trip,
+  onEdit,
+}: {
+  trip: Trip;
+  onEdit: () => void;
+}) {
   const router = useRouter();
   const [busy, setBusy] = React.useState(false);
 
@@ -286,6 +314,15 @@ function DriverTripControls({ trip }: { trip: Trip }) {
       <TripStatusBadge status={trip.status} />
       {trip.status === "SCHEDULED" && (
         <>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={busy}
+            onClick={onEdit}
+          >
+            <Pencil className="h-4 w-4" />
+            تعديل
+          </Button>
           <Button
             size="sm"
             variant="outline"
@@ -329,26 +366,49 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
-/** Add-trip form — persists via the createTrip server action. */
-function AddTripForm({
-  onAdded,
+function localDateTime(iso?: string): { date: string; time: string } {
+  if (!iso) return { date: "", time: "08:00" };
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return {
+    date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+  };
+}
+
+/**
+ * Trip form — creates a trip (createTrip) or, when `trip` is supplied, edits it
+ * in place (updateTrip). Per-seat prices are prefilled and editable.
+ */
+function TripForm({
+  trip,
+  onDone,
   onCancel,
 }: {
-  onAdded: () => void;
+  trip?: Trip;
+  onDone: () => void;
   onCancel: () => void;
 }) {
-  const [from, setFrom] = React.useState("baghdad");
-  const [to, setTo] = React.useState("basra");
-  const [date, setDate] = React.useState("");
-  const [time, setTime] = React.useState("08:00");
-  const [vehicleType, setVehicleType] = React.useState<VehicleType>("SEDAN");
-  const [model, setModel] = React.useState("");
-  const [hours, setHours] = React.useState("4");
-  const [basePrice, setBasePrice] = React.useState(25000);
-  const [seatPrices, setSeatPrices] = React.useState<number[]>(() =>
-    suggestSeatPrices("SEDAN", 25000),
+  const isEdit = !!trip;
+  const initial = localDateTime(trip?.departureAt);
+  const [from, setFrom] = React.useState(trip?.originId ?? "baghdad");
+  const [to, setTo] = React.useState(trip?.destinationId ?? "basra");
+  const [date, setDate] = React.useState(initial.date);
+  const [time, setTime] = React.useState(initial.time);
+  const [vehicleType, setVehicleType] = React.useState<VehicleType>(
+    trip?.vehicleType ?? "SEDAN",
   );
-  const [parcels, setParcels] = React.useState(true);
+  const [model, setModel] = React.useState(trip?.vehicleModel ?? "");
+  const [hours, setHours] = React.useState(
+    trip ? String(Math.max(1, Math.round(trip.durationMinutes / 60))) : "4",
+  );
+  const [basePrice, setBasePrice] = React.useState(
+    trip ? Math.min(...trip.seatPrices) : 25000,
+  );
+  const [seatPrices, setSeatPrices] = React.useState<number[]>(
+    () => trip?.seatPrices ?? suggestSeatPrices("SEDAN", 25000),
+  );
+  const [parcels, setParcels] = React.useState(trip?.acceptsParcels ?? true);
   const [submitting, setSubmitting] = React.useState(false);
 
   const seatCells = React.useMemo(() => {
@@ -383,7 +443,7 @@ function AddTripForm({
     if (!valid || submitting) return;
     setSubmitting(true);
     const departureAt = new Date(`${date}T${time}:00`).toISOString();
-    const res = await createTrip({
+    const payload = {
       originId: from,
       destinationId: to,
       departureAt,
@@ -392,11 +452,14 @@ function AddTripForm({
       vehicleModel: model.trim(),
       seatPrices: seatPrices.map((p) => Math.round(p)),
       acceptsParcels: parcels,
-      parcelBasePrice: parcels ? 8000 : undefined,
-    });
+      parcelBasePrice: parcels ? trip?.parcelBasePrice ?? 8000 : undefined,
+    };
+    const res = isEdit
+      ? await updateTrip(trip.id, payload)
+      : await createTrip(payload);
     if (res.ok) {
-      toast.success("تمت إضافة الرحلة");
-      onAdded();
+      toast.success(isEdit ? "تم حفظ التعديلات" : "تمت إضافة الرحلة");
+      onDone();
       return;
     }
     setSubmitting(false);
@@ -407,7 +470,9 @@ function AddTripForm({
     <Card className="mb-4 border-accent/40">
       <CardContent className="grid gap-4 p-5">
         <div className="flex items-center justify-between">
-          <h2 className="font-display font-bold">رحلة جديدة</h2>
+          <h2 className="font-display font-bold">
+            {isEdit ? "تعديل الرحلة" : "رحلة جديدة"}
+          </h2>
           <Button
             type="button"
             variant="ghost"
@@ -591,7 +656,12 @@ function AddTripForm({
             {submitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                جارٍ الإضافة…
+                {isEdit ? "جارٍ الحفظ…" : "جارٍ الإضافة…"}
+              </>
+            ) : isEdit ? (
+              <>
+                <Pencil className="h-4 w-4" />
+                حفظ التعديلات
               </>
             ) : (
               <>
