@@ -196,7 +196,15 @@ export function BookingConfirm({
                   المقاعد ({arNum(seats.length)})
                 </span>
               }
-              value={seats.map(arNum).join("، ")}
+              value={
+                <span className="grid gap-0.5 text-end">
+                  {seats.map((n) => (
+                    <span key={n} className="nums">
+                      مقعد {arNum(n)} — {formatIQD(priceOf(n))}
+                    </span>
+                  ))}
+                </span>
+              }
             />
             <Row label="السائق" value={trip.driver.name} />
           </div>

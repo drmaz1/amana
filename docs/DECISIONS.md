@@ -2,6 +2,21 @@
 
 Non-obvious choices made while completing Amana per `CLAUDE.md`. Newest first.
 
+## Vehicles & per-seat pricing
+
+- **Three vehicle types with realistic cabin layouts** (`src/lib/seats.ts`):
+  صالون/SEDAN (4: 1 front + 3 back), SUV (6: 1 + 2 + 3), GMC (7: 1 + 3 + 3).
+  Seat 1 is the premium **front** seat; back-row edges are **window**, the
+  squeezed centre seat is **middle**. The seat picker renders the actual cabin
+  (driver + steering wheel, aisle, rows) so passengers see where they'll sit.
+- **Per-seat pricing.** `Trip.seatPrices Int[]` holds a price for every seat;
+  the driver sets them in the add-trip form (auto-filled from a base price:
+  front +25%, window ×1, middle −20%, all editable). `pricePerSeat` is kept as
+  the **minimum** ("starts from"). Booking totals sum the chosen seats'
+  prices and are recomputed server-side in `createBooking` (never trusts the
+  client). The `VehicleType` enum changed SEDAN/VAN/BUS → SEDAN/SUV/GMC via a
+  migration that maps existing VAN/BUS rows to GMC.
+
 ## Demo mode (no database)
 
 - **When `DATABASE_URL` is unset, the whole app runs on in-memory mock data**
