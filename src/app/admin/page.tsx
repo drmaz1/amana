@@ -4,11 +4,7 @@ import { getAllBookings, getAllParcels, getAllTrips } from "@/lib/data";
 import { governorateName } from "@/lib/governorates";
 import { formatArabicDate, formatIQD, formatTime } from "@/lib/utils";
 import { AppShell } from "@/components/app-shell";
-import {
-  BookingStatusBadge,
-  ParcelStatusBadge,
-  TripStatusBadge,
-} from "@/components/status-badge";
+import { AdminStatusControl } from "@/components/admin-status-control";
 import { Card, CardContent } from "@/components/ui/card";
 
 const arNum = (n: number) => new Intl.NumberFormat("ar-IQ").format(n);
@@ -78,7 +74,7 @@ export default async function AdminPage() {
                 {formatIQD(t.pricePerSeat)}
               </Td>
               <Td>
-                <TripStatusBadge status={t.status} />
+                <AdminStatusControl kind="trip" id={t.id} status={t.status} />
               </Td>
             </tr>
           ))}
@@ -105,7 +101,7 @@ export default async function AdminPage() {
                   {formatIQD(b.totalPrice)}
                 </Td>
                 <Td>
-                  <BookingStatusBadge status={b.status} />
+                  <AdminStatusControl kind="booking" id={b.id} status={b.status} />
                 </Td>
               </tr>
             );
@@ -132,7 +128,7 @@ export default async function AdminPage() {
                 {formatIQD(p.price)}
               </Td>
               <Td>
-                <ParcelStatusBadge status={p.status} />
+                <AdminStatusControl kind="parcel" id={p.id} status={p.status} />
               </Td>
             </tr>
           ))}
