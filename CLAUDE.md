@@ -108,10 +108,10 @@ In `prisma/schema.prisma`:
 - [ ] Add pagination + basic filters to all admin tables (server‑side).
 
 ### P4 — Passenger UX completeness
-- [ ] Real search filtering: by date, sort by price/time, filter by seats‑available and "accepts parcels"; preserve filters in the URL; on‑brand empty states.
-- [ ] "My bookings" and "My parcels" pages for the logged‑in user.
-- [ ] Public parcel/booking tracking by reference number.
-- [ ] Wire success/error toasts across all forms.
+- [x] Real search filtering: by date, sort by price/time, filter by seats‑available and "accepts parcels"; preserve filters in the URL; on‑brand empty states.
+- [x] "My bookings" and "My parcels" pages for the logged‑in user.
+- [x] Public parcel/booking tracking by reference number.
+- [x] Wire success/error toasts across all forms.
 
 ### P5 — Hardening & quality
 - [ ] Accessibility & RTL audit (focus states, labels, contrast, keyboard nav on the seat map).

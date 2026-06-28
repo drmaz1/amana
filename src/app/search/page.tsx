@@ -5,6 +5,7 @@ import { searchTrips } from "@/lib/data";
 import { governorateName } from "@/lib/governorates";
 import { formatArabicDate } from "@/lib/utils";
 import { AppShell } from "@/components/app-shell";
+import { SearchFilters } from "@/components/search-filters";
 import { SearchForm } from "@/components/search-form";
 import { TripCard } from "@/components/trip-card";
 import { RouteLine } from "@/components/route-line";
@@ -17,13 +18,36 @@ const arNum = (n: number) => new Intl.NumberFormat("ar-IQ").format(n);
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: { from?: string; to?: string; date?: string };
+  searchParams: {
+    from?: string;
+    to?: string;
+    date?: string;
+    sort?: string;
+    seats?: string;
+    parcels?: string;
+  };
 }) {
   const from = searchParams.from ?? "baghdad";
   const to = searchParams.to ?? "basra";
   const date = searchParams.date;
 
-  const trips = await searchTrips({ from, to });
+  let trips = await searchTrips({ from, to });
+
+  // Filters + sort (preserved in the URL by <SearchFilters />).
+  if (searchParams.seats === "1") {
+    trips = trips.filter((t) => t.totalSeats - t.bookedSeats.length > 0);
+  }
+  if (searchParams.parcels === "1") {
+    trips = trips.filter((t) => t.acceptsParcels);
+  }
+  const sort = searchParams.sort ?? "time";
+  trips = [...trips].sort((a, b) =>
+    sort === "price"
+      ? a.pricePerSeat - b.pricePerSeat
+      : sort === "price_desc"
+        ? b.pricePerSeat - a.pricePerSeat
+        : a.departureAt.localeCompare(b.departureAt),
+  );
 
   return (
     <AppShell>
@@ -56,6 +80,8 @@ export default async function SearchPage({
           {arNum(trips.length)} رحلة
         </span>
       </div>
+
+      <SearchFilters />
 
       {trips.length > 0 ? (
         <div className="grid gap-3">

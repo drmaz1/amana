@@ -230,6 +230,197 @@ export async function getAllParcels(): Promise<Parcel[]> {
   return parcels.map(toParcel);
 }
 
+export type MyBooking = {
+  reference: string;
+  status: Booking["status"];
+  seatNumbers: number[];
+  totalPrice: number;
+  originId: string;
+  destinationId: string;
+  departureAt: string;
+};
+
+export type MyParcel = {
+  reference: string;
+  status: Parcel["status"];
+  originId: string;
+  destinationId: string;
+  description: string;
+  price: number;
+};
+
+/** Bookings made by the signed-in passenger (with route + reference). */
+export async function getMyBookings(userId: string): Promise<MyBooking[]> {
+  noStore();
+  if (isDemoMode()) {
+    return demoData.allBookings().map((b) => {
+      const t = demoData.trip(b.tripId);
+      return {
+        reference: b.reference,
+        status: b.status,
+        seatNumbers: b.seatNumbers,
+        totalPrice: b.totalPrice,
+        originId: t?.originId ?? "",
+        destinationId: t?.destinationId ?? "",
+        departureAt: t?.departureAt ?? b.createdAt,
+      };
+    });
+  }
+  const rows = await prisma.booking.findMany({
+    where: { passengerId: userId },
+    include: {
+      trip: { select: { originId: true, destinationId: true, departureAt: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map((b) => ({
+    reference: b.reference,
+    status: b.status,
+    seatNumbers: b.seatNumbers,
+    totalPrice: b.totalPrice,
+    originId: b.trip.originId,
+    destinationId: b.trip.destinationId,
+    departureAt: b.trip.departureAt.toISOString(),
+  }));
+}
+
+/** Parcels sent by the signed-in user (with reference). */
+export async function getMyParcels(userId: string): Promise<MyParcel[]> {
+  noStore();
+  if (isDemoMode()) {
+    return demoData.allParcels().map((p) => ({
+      reference: p.reference,
+      status: p.status,
+      originId: p.originId,
+      destinationId: p.destinationId,
+      description: p.description,
+      price: p.price,
+    }));
+  }
+  const rows = await prisma.parcel.findMany({
+    where: { senderId: userId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      reference: true,
+      status: true,
+      originId: true,
+      destinationId: true,
+      description: true,
+      price: true,
+    },
+  });
+  return rows;
+}
+
+export type TrackResult =
+  | {
+      kind: "booking";
+      reference: string;
+      status: Booking["status"];
+      originId: string;
+      destinationId: string;
+      departureAt?: string;
+      seatNumbers: number[];
+      totalPrice: number;
+      name: string;
+    }
+  | {
+      kind: "parcel";
+      reference: string;
+      status: Parcel["status"];
+      originId: string;
+      destinationId: string;
+      description: string;
+      price: number;
+      name: string;
+    };
+
+/** Look up a booking or parcel by its public reference (e.g. AMN-… / PKG-…). */
+export async function trackByReference(
+  referenceRaw: string,
+): Promise<TrackResult | null> {
+  noStore();
+  const reference = referenceRaw.trim().toUpperCase();
+  if (!reference) return null;
+  const maybeParcel = !reference.startsWith("AMN");
+  const maybeBooking = !reference.startsWith("PKG");
+
+  if (isDemoMode()) {
+    if (maybeBooking) {
+      const b = demoData.bookingByReference(reference);
+      if (b) {
+        const t = demoData.trip(b.tripId);
+        return {
+          kind: "booking",
+          reference: b.reference,
+          status: b.status,
+          originId: t?.originId ?? "",
+          destinationId: t?.destinationId ?? "",
+          departureAt: t?.departureAt,
+          seatNumbers: b.seatNumbers,
+          totalPrice: b.totalPrice,
+          name: b.passengerName,
+        };
+      }
+    }
+    const p = demoData.parcelByReference(reference);
+    return p
+      ? {
+          kind: "parcel",
+          reference: p.reference,
+          status: p.status,
+          originId: p.originId,
+          destinationId: p.destinationId,
+          description: p.description,
+          price: p.price,
+          name: p.receiverName,
+        }
+      : null;
+  }
+
+  if (maybeBooking) {
+    const b = await prisma.booking.findUnique({
+      where: { reference },
+      include: {
+        trip: { select: { originId: true, destinationId: true, departureAt: true } },
+        passenger: { select: { name: true } },
+      },
+    });
+    if (b) {
+      return {
+        kind: "booking",
+        reference: b.reference,
+        status: b.status,
+        originId: b.trip.originId,
+        destinationId: b.trip.destinationId,
+        departureAt: b.trip.departureAt.toISOString(),
+        seatNumbers: b.seatNumbers,
+        totalPrice: b.totalPrice,
+        name: b.passenger.name,
+      };
+    }
+  }
+  if (maybeParcel) {
+    const p = await prisma.parcel.findUnique({
+      where: { reference },
+      include: { sender: { select: { name: true } } },
+    });
+    if (p) {
+      return {
+        kind: "parcel",
+        reference: p.reference,
+        status: p.status,
+        originId: p.originId,
+        destinationId: p.destinationId,
+        description: p.description,
+        price: p.price,
+        name: p.sender?.name ?? p.senderName ?? p.receiverName,
+      };
+    }
+  }
+  return null;
+}
+
 /** Popular routes for the home page, derived from trip volume. */
 export async function getPopularRoutes(): Promise<
   { originId: string; destinationId: string; fromPrice: number; count: number }[]

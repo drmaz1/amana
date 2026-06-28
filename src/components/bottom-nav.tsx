@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Car, Home, Package, Search } from "lucide-react";
+import { Home, Package, Search, Ticket } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -11,7 +11,7 @@ const ITEMS: { href: string; label: string; icon: LucideIcon; match: (p: string)
   { href: "/", label: "الرئيسية", icon: Home, match: (p) => p === "/" },
   { href: "/search", label: "بحث", icon: Search, match: (p) => p.startsWith("/search") || p.startsWith("/trips") },
   { href: "/parcels/new", label: "أمانة", icon: Package, match: (p) => p.startsWith("/parcels") },
-  { href: "/driver", label: "السائق", icon: Car, match: (p) => p.startsWith("/driver") },
+  { href: "/me", label: "رحلاتي", icon: Ticket, match: (p) => p.startsWith("/me") || p.startsWith("/track") },
 ];
 
 export function BottomNav() {

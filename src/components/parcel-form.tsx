@@ -130,12 +130,20 @@ export function ParcelForm({
           </div>
         </div>
 
-        <Button asChild className="mt-5 w-full">
-          <Link href="/">
-            <Home className="h-4 w-4" />
-            العودة للرئيسية
-          </Link>
-        </Button>
+        <div className="mt-5 grid gap-2">
+          <Button asChild variant="outline">
+            <Link href={`/track?ref=${reference}`}>
+              <Package className="h-4 w-4" />
+              تتبّع الأمانة
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/">
+              <Home className="h-4 w-4" />
+              العودة للرئيسية
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }

@@ -130,6 +130,16 @@ export default async function HomePage() {
         </Card>
       </section>
 
+      {/* Track */}
+      <div className="mt-3 text-center">
+        <Link
+          href="/track"
+          className="text-sm font-medium text-primary hover:underline"
+        >
+          تتبّع حجز أو أمانة برقم الطلب
+        </Link>
+      </div>
+
       {/* Trust strip */}
       <section className="mt-8 grid grid-cols-3 gap-3 text-center">
         {[

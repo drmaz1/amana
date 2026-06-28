@@ -177,8 +177,8 @@ export const demoData = {
     );
     return BOOKINGS.filter((b) => ids.has(b.tripId));
   },
-  allBookings: (): Booking[] => BOOKINGS,
-  allParcels: (): Parcel[] => PARCELS,
+  allBookings: (): (Booking & { reference: string })[] => BOOKINGS,
+  allParcels: (): (Parcel & { reference: string })[] => PARCELS,
   popularRoutes: () => {
     const map = new Map<string, { fromPrice: number; count: number }>();
     for (const t of TRIPS) {

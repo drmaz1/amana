@@ -130,6 +130,12 @@ export function BookingConfirm({
               اتصل بالسائق
             </a>
           </Button>
+          <Button asChild variant="ghost">
+            <Link href={`/track?ref=${reference}`}>
+              <Ticket className="h-4 w-4" />
+              تتبّع الحجز
+            </Link>
+          </Button>
           <Button asChild>
             <Link href="/">
               <Home className="h-4 w-4" />
