@@ -160,7 +160,7 @@ export default async function TripDetailsPage({
       {/* sticky booking bar */}
       <div className="sticky bottom-20 z-10 mt-6 flex items-center justify-between gap-3 rounded-xl border bg-card p-4 shadow-lg md:bottom-4">
         <div>
-          <div className="text-xs text-muted-foreground">سعر المقعد</div>
+          <div className="text-xs text-muted-foreground">تبدأ المقاعد من</div>
           <div className="font-display text-xl font-extrabold text-primary nums">
             {formatIQD(trip.pricePerSeat)}
           </div>

@@ -19,6 +19,13 @@ import type { Booking, Trip, VehicleType } from "@/types";
 import { cancelTrip, createTrip, setTripStatus } from "@/lib/actions/trip";
 import { GOVERNORATES } from "@/lib/governorates";
 import {
+  categoryLabel,
+  getSeatLayout,
+  suggestSeatPrices,
+  vehicleLabel,
+  type SeatCategory,
+} from "@/lib/seats";
+import {
   formatArabicDate,
   formatIQD,
   formatTime,
@@ -323,18 +330,40 @@ function AddTripForm({
   const [vehicleType, setVehicleType] = React.useState<VehicleType>("SEDAN");
   const [model, setModel] = React.useState("");
   const [hours, setHours] = React.useState("4");
-  const [seats, setSeats] = React.useState("4");
-  const [price, setPrice] = React.useState("25000");
+  const [basePrice, setBasePrice] = React.useState(25000);
+  const [seatPrices, setSeatPrices] = React.useState<number[]>(() =>
+    suggestSeatPrices("SEDAN", 25000),
+  );
   const [parcels, setParcels] = React.useState(true);
   const [submitting, setSubmitting] = React.useState(false);
+
+  const seatCells = React.useMemo(() => {
+    const cells: { n: number; category: SeatCategory }[] = [];
+    for (const row of getSeatLayout(vehicleType))
+      for (const c of row)
+        if (c.kind === "seat") cells.push({ n: c.n, category: c.category });
+    return cells.sort((a, b) => a.n - b.n);
+  }, [vehicleType]);
+
+  function applyType(v: VehicleType) {
+    setVehicleType(v);
+    setSeatPrices(suggestSeatPrices(v, basePrice || 1000));
+  }
+  function applyBase(value: number) {
+    setBasePrice(value);
+    setSeatPrices(suggestSeatPrices(vehicleType, value || 1000));
+  }
+  function setSeatPrice(i: number, value: number) {
+    setSeatPrices((prev) => prev.map((p, idx) => (idx === i ? value : p)));
+  }
 
   const valid =
     from !== to &&
     !!date &&
     !!time &&
     model.trim().length >= 2 &&
-    Number(seats) >= 1 &&
-    Number(price) > 0;
+    seatPrices.length >= 1 &&
+    seatPrices.every((p) => p > 0);
 
   async function submit() {
     if (!valid || submitting) return;
@@ -347,8 +376,7 @@ function AddTripForm({
       durationMinutes: Math.max(30, Math.round(Number(hours) * 60)) || 180,
       vehicleType,
       vehicleModel: model.trim(),
-      totalSeats: Math.max(1, Math.round(Number(seats))),
-      pricePerSeat: Math.round(Number(price)),
+      seatPrices: seatPrices.map((p) => Math.round(p)),
       acceptsParcels: parcels,
       parcelBasePrice: parcels ? 8000 : undefined,
     });
@@ -438,7 +466,7 @@ function AddTripForm({
             <Label htmlFor="t-type">نوع المركبة</Label>
             <Select
               value={vehicleType}
-              onValueChange={(v) => setVehicleType(v as VehicleType)}
+              onValueChange={(v) => applyType(v as VehicleType)}
             >
               <SelectTrigger id="t-type">
                 <SelectValue />
@@ -463,7 +491,7 @@ function AddTripForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="grid gap-1.5">
             <Label htmlFor="t-hours">المدة (ساعة)</Label>
             <Input
@@ -477,28 +505,47 @@ function AddTripForm({
             />
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="t-seats">المقاعد</Label>
+            <Label htmlFor="t-base">السعر الأساسي (مقعد شباك)</Label>
             <Input
-              id="t-seats"
-              type="number"
-              min={1}
-              step={1}
-              value={seats}
-              onChange={(e) => setSeats(e.target.value)}
-              className="nums"
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor="t-price">سعر المقعد</Label>
-            <Input
-              id="t-price"
+              id="t-base"
               type="number"
               min={1000}
               step={1000}
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              value={basePrice}
+              onChange={(e) => applyBase(Number(e.target.value))}
               className="nums"
             />
+          </div>
+        </div>
+
+        {/* per-seat prices — pre-filled from the base, editable */}
+        <div className="grid gap-2 rounded-lg border bg-secondary/20 p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium">سعر كل مقعد</span>
+            <span className="text-[11px] text-muted-foreground">
+              {vehicleLabel(vehicleType)} · {arNum(seatCells.length)} مقاعد
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {seatCells.map((s, i) => (
+              <div key={s.n} className="grid gap-1">
+                <Label
+                  htmlFor={`t-seat-${s.n}`}
+                  className="text-[11px] text-muted-foreground"
+                >
+                  مقعد {arNum(s.n)} · {categoryLabel(s.category)}
+                </Label>
+                <Input
+                  id={`t-seat-${s.n}`}
+                  type="number"
+                  min={1000}
+                  step={1000}
+                  value={seatPrices[i] ?? ""}
+                  onChange={(e) => setSeatPrice(i, Number(e.target.value))}
+                  className="nums h-9"
+                />
+              </div>
+            ))}
           </div>
         </div>
 

@@ -48,7 +48,8 @@ export function BookingConfirm({
   );
   const [reference, setReference] = React.useState("");
 
-  const total = seats.length * trip.pricePerSeat;
+  const priceOf = (n: number) => trip.seatPrices[n - 1] ?? trip.pricePerSeat;
+  const total = seats.reduce((s, n) => s + priceOf(n), 0);
   const valid = name.trim().length >= 2 && isValidIraqiPhone(phone);
 
   async function confirm() {
@@ -240,7 +241,8 @@ export function BookingConfirm({
         <div className="mb-3 flex items-center justify-between">
           <div>
             <div className="text-xs text-muted-foreground">
-              {arNum(seats.length)} مقعد × {formatIQD(trip.pricePerSeat)}
+              الإجمالي ({arNum(seats.length)}{" "}
+              {seats.length === 1 ? "مقعد" : "مقاعد"})
             </div>
             <div className="font-display text-2xl font-extrabold text-primary nums">
               {formatIQD(total)}

@@ -57,10 +57,10 @@ export function TripCard({ trip, href }: { trip: Trip; href?: string }) {
             </div>
           </div>
           <div className="shrink-0 text-end">
+            <div className="text-[10px] text-muted-foreground">يبدأ من</div>
             <div className="font-display text-lg font-extrabold text-primary nums">
               {formatIQD(trip.pricePerSeat)}
             </div>
-            <div className="text-[11px] text-muted-foreground">للمقعد</div>
           </div>
         </div>
 

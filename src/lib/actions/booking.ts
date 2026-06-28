@@ -31,7 +31,7 @@ export async function createBooking(
 
   const trip = await prisma.trip.findUnique({
     where: { id: tripId },
-    select: { status: true, pricePerSeat: true, totalSeats: true },
+    select: { status: true, pricePerSeat: true, seatPrices: true, totalSeats: true },
   });
   if (!trip) return actionError("الرحلة غير موجودة", "NOT_FOUND");
   if (trip.status !== "SCHEDULED") {
@@ -40,6 +40,11 @@ export async function createBooking(
   if (seatNumbers.some((n) => n < 1 || n > trip.totalSeats)) {
     return actionError("رقم مقعد غير صالح", "BAD_SEAT");
   }
+  // Price from the trip's per-seat prices (server-authoritative).
+  const totalPrice = seatNumbers.reduce(
+    (sum, n) => sum + (trip.seatPrices[n - 1] ?? trip.pricePerSeat),
+    0,
+  );
 
   // Logged-in users own the booking; guests get an account keyed by phone.
   const session = await getSession();
@@ -61,7 +66,7 @@ export async function createBooking(
       tripId,
       passengerId,
       seatNumbers,
-      totalPrice: seatNumbers.length * trip.pricePerSeat,
+      totalPrice,
       status: "CONFIRMED",
     });
     // No revalidatePath needed: every read goes through the data layer's
