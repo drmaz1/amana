@@ -2,6 +2,22 @@
 
 Non-obvious choices made while completing Amana per `CLAUDE.md`. Newest first.
 
+## Driver depth — vehicles, trip editing, passenger contact
+
+- **Passenger contact**: `getDriverBookings` now selects the passenger phone
+  (driver-only — `getAllBookings`/`getBookingsForTrip` still don't), surfaced as
+  a `tel:` call button per booking (E.164 dial, local display). Booking view
+  type gained an optional `passengerPhone`.
+- **Edit trip**: `updateTrip` (owner/admin, only while `SCHEDULED`) re-resolves
+  the vehicle by type+model exactly like `createTrip` so a shared vehicle is
+  never mutated, and refuses to shrink the cabin below an already-booked seat.
+  The old `AddTripForm` became `TripForm` with an `isEdit` mode (prefills route,
+  time, vehicle, per-seat prices); a "تعديل" button opens it inline.
+- **Vehicles**: `createVehicle`/`updateVehicle` (driver-owned, demo optimistic,
+  P2002 → "اللوحة مستخدمة") + `getDriverVehicles`. A "مركباتي" tab
+  (`VehicleManager`) lists/adds/edits vehicles; seat count derives from the type
+  via `seatsForVehicle`. Demo seeds two vehicles for the demo driver.
+
 ## Admin depth — users, roles, parcel→trip assignment
 
 - **Users management page** (`/admin/users`): server-side paginated + filtered

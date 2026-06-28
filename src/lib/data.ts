@@ -5,7 +5,7 @@ import { demoData } from "@/lib/demo-data";
 import { isDemoMode } from "@/lib/demo";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@/lib/session-token";
-import type { Booking, Parcel, Trip } from "@/types";
+import type { Booking, Parcel, Trip, Vehicle } from "@/types";
 
 /**
  * Read layer. Every page/route reads through these functions; they return the
@@ -216,6 +216,19 @@ export async function getDriverBookings(driverId?: string): Promise<Booking[]> {
     orderBy: { createdAt: "asc" },
   });
   return bookings.map(toBooking);
+}
+
+/** Vehicles owned by a driver (defaults to the demo driver). */
+export async function getDriverVehicles(driverId?: string): Promise<Vehicle[]> {
+  noStore();
+  if (isDemoMode()) return demoData.driverVehicles();
+  const id = await resolveDriverId(driverId);
+  if (!id) return [];
+  return prisma.vehicle.findMany({
+    where: { driverId: id },
+    orderBy: { model: "asc" },
+    select: { id: true, type: true, model: true, plate: true, seats: true },
+  });
 }
 
 export async function getAllBookings(): Promise<Booking[]> {

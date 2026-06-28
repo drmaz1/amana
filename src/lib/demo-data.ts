@@ -1,5 +1,12 @@
 import { suggestSeatPrices } from "@/lib/seats";
-import type { Booking, Driver, Parcel, Trip, VehicleType } from "@/types";
+import type {
+  Booking,
+  Driver,
+  Parcel,
+  Trip,
+  Vehicle,
+  VehicleType,
+} from "@/types";
 
 /**
  * In-memory dataset for demo mode (no database). Mirrors the view shapes in
@@ -87,6 +94,11 @@ const USERS: DemoUser[] = [
   { id: "u7", name: "دلير عمر", phone: "07507778899", role: "PASSENGER", rating: null, tripsCount: 0, createdAt: at(-2, 17) },
 ];
 
+const VEHICLES: (Vehicle & { driverId: string })[] = [
+  { id: "v1", driverId: "d1", type: "SEDAN", model: "تويوتا أفالون 2019", plate: "بغداد ٢٢ أ ٤٥٦٧", seats: 4 },
+  { id: "v2", driverId: "d1", type: "SEDAN", model: "تويوتا كامري 2022", plate: "النجف ٥ هـ ٩٩٨٨", seats: 4 },
+];
+
 const DEMO_DRIVER_ID = "d1";
 
 export const demoData = {
@@ -108,6 +120,10 @@ export const demoData = {
     );
     return BOOKINGS.filter((b) => ids.has(b.tripId));
   },
+  driverVehicles: (): Vehicle[] =>
+    VEHICLES.filter((v) => v.driverId === DEMO_DRIVER_ID).map(
+      ({ driverId: _driverId, ...v }) => v,
+    ),
   allBookings: (): (Booking & { reference: string })[] => BOOKINGS,
   allParcels: (): (Parcel & { reference: string })[] => PARCELS,
   users: ({

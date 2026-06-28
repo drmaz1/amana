@@ -20,6 +20,14 @@ export type Driver = {
   tripsCount: number;
 };
 
+export type Vehicle = {
+  id: string;
+  type: VehicleType;
+  model: string;
+  plate: string;
+  seats: number;
+};
+
 export type Trip = {
   id: string;
   driver: Driver;

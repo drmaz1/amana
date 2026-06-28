@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import type { Booking, Trip, VehicleType } from "@/types";
+import type { Booking, Trip, Vehicle, VehicleType } from "@/types";
 import {
   cancelTrip,
   createTrip,
@@ -40,6 +40,7 @@ import {
 } from "@/lib/utils";
 import { RouteLine } from "@/components/route-line";
 import { TripCard } from "@/components/trip-card";
+import { VehicleManager } from "@/components/vehicle-manager";
 import { BookingStatusBadge, TripStatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -89,9 +90,11 @@ function StatCard({
 export function DriverDashboard({
   initialTrips,
   bookings,
+  vehicles,
 }: {
   initialTrips: Trip[];
   bookings: Booking[];
+  vehicles: Vehicle[];
 }) {
   const router = useRouter();
   const [showForm, setShowForm] = React.useState(false);
@@ -162,9 +165,10 @@ export function DriverDashboard({
       )}
 
       <Tabs defaultValue="trips" className="mt-5">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="trips">رحلاتي</TabsTrigger>
           <TabsTrigger value="bookings">الحجوزات</TabsTrigger>
+          <TabsTrigger value="vehicles">مركباتي</TabsTrigger>
         </TabsList>
 
         {/* trips tab */}
@@ -270,6 +274,11 @@ export function DriverDashboard({
               <EmptyState text="لا توجد حجوزات على رحلاتك حتى الآن." />
             )}
           </div>
+        </TabsContent>
+
+        {/* vehicles tab */}
+        <TabsContent value="vehicles">
+          <VehicleManager vehicles={vehicles} />
         </TabsContent>
       </Tabs>
     </>
