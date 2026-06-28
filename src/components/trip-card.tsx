@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Clock, Package, Star, Users } from "lucide-react";
 
 import type { Trip } from "@/types";
+import { vehicleLabel } from "@/lib/seats";
 import {
   formatArabicDate,
   formatDuration,
@@ -11,12 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RouteLine } from "@/components/route-line";
-
-const VEHICLE_LABEL: Record<Trip["vehicleType"], string> = {
-  SEDAN: "صالون",
-  VAN: "كيا / فان",
-  BUS: "باص",
-};
 
 export function TripCard({ trip, href }: { trip: Trip; href?: string }) {
   const available = trip.totalSeats - trip.bookedSeats.length;
@@ -58,7 +53,7 @@ export function TripCard({ trip, href }: { trip: Trip; href?: string }) {
               </span>
             </div>
             <div className="mt-0.5 text-xs text-muted-foreground">
-              {VEHICLE_LABEL[trip.vehicleType]} • {trip.vehicleModel}
+              {vehicleLabel(trip.vehicleType)} • {trip.vehicleModel}
             </div>
           </div>
           <div className="shrink-0 text-end">

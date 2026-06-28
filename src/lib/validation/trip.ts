@@ -12,7 +12,7 @@ export const tripSchema = z
       .int()
       .positive()
       .max(1440, { message: "مدة غير منطقية" }),
-    vehicleType: z.enum(["SEDAN", "VAN", "BUS"]),
+    vehicleType: z.enum(["SEDAN", "SUV", "GMC"]),
     vehicleModel: z
       .string()
       .trim()

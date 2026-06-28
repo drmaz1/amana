@@ -42,9 +42,9 @@ import {
 const arNum = (n: number) => new Intl.NumberFormat("ar-IQ").format(n);
 
 const VEHICLE_OPTIONS: { value: VehicleType; label: string }[] = [
-  { value: "SEDAN", label: "صالون" },
-  { value: "VAN", label: "كيا / فان" },
-  { value: "BUS", label: "باص" },
+  { value: "SEDAN", label: "صالون (٤ ركاب)" },
+  { value: "SUV", label: "SUV (٦ ركاب)" },
+  { value: "GMC", label: "GMC (٧ ركاب)" },
 ];
 
 function StatCard({

@@ -29,12 +29,13 @@ const tripInclude = {
 type TripRow = {
   id: string;
   driver: { id: string; name: string; phone: string; rating: number | null; tripsCount: number };
-  vehicle: { type: "SEDAN" | "VAN" | "BUS"; model: string; plate: string };
+  vehicle: { type: "SEDAN" | "SUV" | "GMC"; model: string; plate: string };
   originId: string;
   destinationId: string;
   departureAt: Date;
   durationMinutes: number | null;
   pricePerSeat: number;
+  seatPrices: number[];
   totalSeats: number;
   status: Trip["status"];
   acceptsParcels: boolean;
@@ -61,6 +62,7 @@ function toTrip(t: TripRow): Trip {
     departureAt: t.departureAt.toISOString(),
     durationMinutes: t.durationMinutes ?? 0,
     pricePerSeat: t.pricePerSeat,
+    seatPrices: t.seatPrices,
     totalSeats: t.totalSeats,
     bookedSeats: t.bookingSeats.map((s) => s.seatNumber).sort((a, b) => a - b),
     status: t.status,

@@ -1,4 +1,4 @@
-export type VehicleType = "SEDAN" | "VAN" | "BUS";
+export type VehicleType = "SEDAN" | "SUV" | "GMC";
 export type TripStatus = "SCHEDULED" | "ONGOING" | "COMPLETED" | "CANCELLED";
 export type BookingStatus =
   | "PENDING"
@@ -30,7 +30,8 @@ export type Trip = {
   destinationId: string;
   departureAt: string; // ISO
   durationMinutes: number;
-  pricePerSeat: number; // IQD
+  pricePerSeat: number; // IQD — the lowest seat price ("starts from")
+  seatPrices: number[]; // IQD per seat, index 0 = seat 1
   totalSeats: number;
   bookedSeats: number[]; // taken seat indexes (1-based)
   status: TripStatus;

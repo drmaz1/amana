@@ -1,9 +1,9 @@
-import type { Booking, Driver, Parcel, Trip } from "@/types";
+import { suggestSeatPrices } from "@/lib/seats";
+import type { Booking, Driver, Parcel, Trip, VehicleType } from "@/types";
 
 /**
- * In-memory dataset used in demo mode (no database). Mirrors the view shapes in
- * `@/types`, so the data layer can return it directly. Bookings/parcels carry a
- * `reference` used by the tracking page.
+ * In-memory dataset for demo mode (no database). Mirrors the view shapes in
+ * `@/types`; bookings/parcels carry a `reference` used by the tracking page.
  */
 
 function at(dayOffset: number, hour: number, minute = 0): string {
@@ -11,6 +11,15 @@ function at(dayOffset: number, hour: number, minute = 0): string {
   d.setDate(d.getDate() + dayOffset);
   d.setHours(hour, minute, 0, 0);
   return d.toISOString();
+}
+
+function priced(type: VehicleType, base: number) {
+  const seatPrices = suggestSeatPrices(type, base);
+  return {
+    seatPrices,
+    pricePerSeat: Math.min(...seatPrices),
+    totalSeats: seatPrices.length,
+  };
 }
 
 const DRIVERS: Driver[] = [
@@ -21,133 +30,25 @@ const DRIVERS: Driver[] = [
 ];
 
 const TRIPS: Trip[] = [
-  {
-    id: "t1",
-    driver: DRIVERS[0],
-    vehicleType: "SEDAN",
-    vehicleModel: "تويوتا أفالون 2019",
-    plate: "بغداد ٢٢ أ ٤٥٦٧",
-    originId: "baghdad",
-    destinationId: "basra",
-    departureAt: at(0, 7, 30),
-    durationMinutes: 330,
-    pricePerSeat: 25000,
-    totalSeats: 4,
-    bookedSeats: [1, 3],
-    status: "SCHEDULED",
-    acceptsParcels: true,
-    parcelBasePrice: 10000,
-    notes: "انطلاق من كراج علاوي الحلة. مكيّف وواي‑فاي.",
-  },
-  {
-    id: "t2",
-    driver: DRIVERS[1],
-    vehicleType: "VAN",
-    vehicleModel: "كيا كارنفال 2021",
-    plate: "بغداد ١٤ ب ٧٨٩٠",
-    originId: "baghdad",
-    destinationId: "basra",
-    departureAt: at(0, 9, 0),
-    durationMinutes: 360,
-    pricePerSeat: 20000,
-    totalSeats: 7,
-    bookedSeats: [2],
-    status: "SCHEDULED",
-    acceptsParcels: true,
-    parcelBasePrice: 8000,
-  },
-  {
-    id: "t3",
-    driver: DRIVERS[2],
-    vehicleType: "SEDAN",
-    vehicleModel: "كيا K5 2020",
-    plate: "بغداد ٣١ ج ١٢٣٤",
-    originId: "baghdad",
-    destinationId: "basra",
-    departureAt: at(0, 14, 0),
-    durationMinutes: 320,
-    pricePerSeat: 30000,
-    totalSeats: 4,
-    bookedSeats: [],
-    status: "SCHEDULED",
-    acceptsParcels: false,
-    notes: "سيارة خاصة سريعة، بدون توقفات.",
-  },
-  {
-    id: "t4",
-    driver: DRIVERS[3],
-    vehicleType: "VAN",
-    vehicleModel: "هيونداي H1 2018",
-    plate: "أربيل ٢ د ٥٥٦٦",
-    originId: "baghdad",
-    destinationId: "erbil",
-    departureAt: at(0, 8, 0),
-    durationMinutes: 300,
-    pricePerSeat: 22000,
-    totalSeats: 7,
-    bookedSeats: [1, 2, 5],
-    status: "SCHEDULED",
-    acceptsParcels: true,
-    parcelBasePrice: 12000,
-  },
-  {
-    id: "t5",
-    driver: DRIVERS[0],
-    vehicleType: "SEDAN",
-    vehicleModel: "تويوتا كامري 2022",
-    plate: "النجف ٥ هـ ٩٩٨٨",
-    originId: "baghdad",
-    destinationId: "najaf",
-    departureAt: at(0, 10, 30),
-    durationMinutes: 150,
-    pricePerSeat: 15000,
-    totalSeats: 4,
-    bookedSeats: [4],
-    status: "SCHEDULED",
-    acceptsParcels: true,
-    parcelBasePrice: 7000,
-  },
-  {
-    id: "t6",
-    driver: DRIVERS[2],
-    vehicleType: "SEDAN",
-    vehicleModel: "كيا K5 2020",
-    plate: "بغداد ٣١ ج ١٢٣٤",
-    originId: "basra",
-    destinationId: "baghdad",
-    departureAt: at(1, 7, 0),
-    durationMinutes: 330,
-    pricePerSeat: 28000,
-    totalSeats: 4,
-    bookedSeats: [2, 3],
-    status: "SCHEDULED",
-    acceptsParcels: true,
-    parcelBasePrice: 10000,
-  },
-  {
-    id: "t7",
-    driver: DRIVERS[3],
-    vehicleType: "VAN",
-    vehicleModel: "كيا كارنفال 2021",
-    plate: "كربلاء ٧ و ٢٢١١",
-    originId: "karbala",
-    destinationId: "baghdad",
-    departureAt: at(1, 12, 0),
-    durationMinutes: 120,
-    pricePerSeat: 12000,
-    totalSeats: 7,
-    bookedSeats: [],
-    status: "SCHEDULED",
-    acceptsParcels: true,
-    parcelBasePrice: 6000,
-  },
+  { id: "t1", driver: DRIVERS[0], vehicleType: "SEDAN", vehicleModel: "تويوتا أفالون 2019", plate: "بغداد ٢٢ أ ٤٥٦٧", originId: "baghdad", destinationId: "basra", departureAt: at(0, 7, 30), durationMinutes: 330, ...priced("SEDAN", 25000), bookedSeats: [1, 3], status: "SCHEDULED", acceptsParcels: true, parcelBasePrice: 10000, notes: "انطلاق من كراج علاوي الحلة. مكيّف وواي‑فاي." },
+  { id: "t2", driver: DRIVERS[1], vehicleType: "SUV", vehicleModel: "دودج دورانكو 2021", plate: "بغداد ١٤ ب ٧٨٩٠", originId: "baghdad", destinationId: "basra", departureAt: at(0, 9, 0), durationMinutes: 360, ...priced("SUV", 20000), bookedSeats: [2], status: "SCHEDULED", acceptsParcels: true, parcelBasePrice: 8000 },
+  { id: "t3", driver: DRIVERS[2], vehicleType: "SEDAN", vehicleModel: "كيا K5 2020", plate: "بغداد ٣١ ج ١٢٣٤", originId: "baghdad", destinationId: "basra", departureAt: at(0, 14, 0), durationMinutes: 320, ...priced("SEDAN", 30000), bookedSeats: [], status: "SCHEDULED", acceptsParcels: false, notes: "سيارة خاصة سريعة، بدون توقفات." },
+  { id: "t4", driver: DRIVERS[3], vehicleType: "GMC", vehicleModel: "جمس سوبربان 2019", plate: "أربيل ٢ د ٥٥٦٦", originId: "baghdad", destinationId: "erbil", departureAt: at(0, 8, 0), durationMinutes: 300, ...priced("GMC", 22000), bookedSeats: [1, 2, 5], status: "SCHEDULED", acceptsParcels: true, parcelBasePrice: 12000 },
+  { id: "t5", driver: DRIVERS[0], vehicleType: "SEDAN", vehicleModel: "تويوتا كامري 2022", plate: "النجف ٥ هـ ٩٩٨٨", originId: "baghdad", destinationId: "najaf", departureAt: at(0, 10, 30), durationMinutes: 150, ...priced("SEDAN", 15000), bookedSeats: [4], status: "SCHEDULED", acceptsParcels: true, parcelBasePrice: 7000 },
+  { id: "t6", driver: DRIVERS[2], vehicleType: "SEDAN", vehicleModel: "كيا K5 2020", plate: "بغداد ٣١ ج ١٢٣٤", originId: "basra", destinationId: "baghdad", departureAt: at(1, 7, 0), durationMinutes: 330, ...priced("SEDAN", 28000), bookedSeats: [2, 3], status: "SCHEDULED", acceptsParcels: true, parcelBasePrice: 10000 },
+  { id: "t7", driver: DRIVERS[3], vehicleType: "GMC", vehicleModel: "جمس يوكن 2021", plate: "كربلاء ٧ و ٢٢١١", originId: "karbala", destinationId: "baghdad", departureAt: at(1, 12, 0), durationMinutes: 120, ...priced("GMC", 12000), bookedSeats: [], status: "SCHEDULED", acceptsParcels: true, parcelBasePrice: 6000 },
 ];
 
+const seatTotal = (tripId: string, seats: number[]) => {
+  const t = TRIPS.find((x) => x.id === tripId);
+  return seats.reduce((s, n) => s + (t?.seatPrices[n - 1] ?? 0), 0);
+};
+
 const BOOKINGS: (Booking & { reference: string })[] = [
-  { id: "b1", reference: "AMN-1001", tripId: "t1", passengerName: "مصطفى عبد الله", seatNumbers: [1], totalPrice: 25000, status: "CONFIRMED", createdAt: at(-1, 18, 0) },
-  { id: "b2", reference: "AMN-1002", tripId: "t1", passengerName: "زينب حسن", seatNumbers: [3], totalPrice: 25000, status: "CONFIRMED", createdAt: at(-1, 20, 0) },
-  { id: "b3", reference: "AMN-1003", tripId: "t4", passengerName: "آرام رشيد", seatNumbers: [1, 2], totalPrice: 44000, status: "PENDING", createdAt: at(0, 6, 30) },
-  { id: "b4", reference: "AMN-1004", tripId: "t5", passengerName: "علي كريم", seatNumbers: [4], totalPrice: 15000, status: "CONFIRMED", createdAt: at(0, 7, 0) },
+  { id: "b1", reference: "AMN-1001", tripId: "t1", passengerName: "مصطفى عبد الله", seatNumbers: [1], totalPrice: seatTotal("t1", [1]), status: "CONFIRMED", createdAt: at(-1, 18, 0) },
+  { id: "b2", reference: "AMN-1002", tripId: "t1", passengerName: "زينب حسن", seatNumbers: [3], totalPrice: seatTotal("t1", [3]), status: "CONFIRMED", createdAt: at(-1, 20, 0) },
+  { id: "b3", reference: "AMN-1003", tripId: "t4", passengerName: "آرام رشيد", seatNumbers: [1, 2], totalPrice: seatTotal("t4", [1, 2]), status: "PENDING", createdAt: at(0, 6, 30) },
+  { id: "b4", reference: "AMN-1004", tripId: "t5", passengerName: "علي كريم", seatNumbers: [4], totalPrice: seatTotal("t5", [4]), status: "CONFIRMED", createdAt: at(0, 7, 0) },
 ];
 
 const PARCELS: (Parcel & { reference: string })[] = [
@@ -156,7 +57,7 @@ const PARCELS: (Parcel & { reference: string })[] = [
   { id: "p3", reference: "PKG-2003", originId: "najaf", destinationId: "baghdad", senderName: "كرار جبار", receiverName: "أحمد سالم", receiverPhone: "07703334455", description: "هدية / علبة صغيرة", price: 7000, status: "DELIVERED", createdAt: at(-1, 14, 0) },
 ];
 
-const DEMO_DRIVER_ID = "d1"; // أبو علي الكناني
+const DEMO_DRIVER_ID = "d1";
 
 export const demoData = {
   allTrips: (): Trip[] => TRIPS,

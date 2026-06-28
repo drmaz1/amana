@@ -13,6 +13,7 @@ import {
 
 import { getTrip } from "@/lib/data";
 import { governorateName } from "@/lib/governorates";
+import { vehicleLabel } from "@/lib/seats";
 import {
   formatArabicDate,
   formatDuration,
@@ -26,7 +27,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-const VEHICLE_LABEL = { SEDAN: "صالون", VAN: "كيا / فان", BUS: "باص" } as const;
 const arNum = (n: number) => new Intl.NumberFormat("ar-IQ").format(n);
 
 export async function generateMetadata({
@@ -118,7 +118,7 @@ export default async function TripDetailsPage({
       {/* vehicle + seats */}
       <Card className="mt-4">
         <CardContent className="grid gap-3 p-4 text-sm">
-          <Row label="المركبة" value={`${VEHICLE_LABEL[trip.vehicleType]} — ${trip.vehicleModel}`} />
+          <Row label="المركبة" value={`${vehicleLabel(trip.vehicleType)} — ${trip.vehicleModel}`} />
           <Row label="رقم اللوحة" value={trip.plate} mono />
           <Row
             label="المقاعد المتاحة"

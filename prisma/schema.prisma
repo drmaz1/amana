@@ -20,9 +20,9 @@ enum Role {
 }
 
 enum VehicleType {
-  SEDAN // سيارة صالون
-  VAN // كيا / فان
-  BUS // باص
+  SEDAN // صالون (1 أمام + 3 خلف = 4 ركاب)
+  SUV // دفع رباعي (1 + 2 + 3 = 6 ركاب)
+  GMC // (1 + 3 + 3 = 7 ركاب)
 }
 
 enum TripStatus {
@@ -90,7 +90,8 @@ model Trip {
   destinationId  String // governorate code, e.g. "basra"
   departureAt    DateTime
   durationMinutes Int? // estimated travel time, shown on trip/seat cards
-  pricePerSeat   Int // IQD
+  pricePerSeat   Int // IQD — lowest seat price ("starts from")
+  seatPrices     Int[]   @default([]) // IQD per seat, index 0 = seat 1
   totalSeats     Int
   status         TripStatus @default(SCHEDULED)
   acceptsParcels Boolean    @default(true)
